@@ -29,6 +29,27 @@ export default function MapComponent() {
         }
     }, [focusedLocation]);
 
+    // Get User's Current Location
+    useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    if (mapRef.current) {
+                        mapRef.current.flyTo({
+                            center: [position.coords.longitude, position.coords.latitude],
+                            zoom: 14,
+                            essential: true,
+                        });
+                    }
+                },
+                (error) => {
+                    console.warn("Error getting location:", error);
+                    // Fallback to default (Paris) is already handled by initialViewState
+                }
+            );
+        }
+    }, []);
+
     if (!MAPBOX_TOKEN) {
         return <div className="w-full h-full flex items-center justify-center text-white bg-gray-900">Mapbox Token Missing</div>;
     }
