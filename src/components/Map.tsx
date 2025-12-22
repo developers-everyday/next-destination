@@ -1,16 +1,21 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Map, Marker, Layer, Source, MapRef, GeolocateControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useItineraryStore } from "@/store/useItineraryStore";
 import { MapPin } from "lucide-react";
+import * as turf from "@turf/turf";
+import TimelineControl from "./TimelineControl";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 export default function MapComponent() {
     const mapRef = useRef<MapRef>(null);
     const { stops, focusedLocation, addStop, theme } = useItineraryStore();
+    const [isSimulating, setIsSimulating] = useState(false);
+    const [carPosition, setCarPosition] = useState<any>(null);
+    const [carBearing, setCarBearing] = useState(0);
 
     useEffect(() => {
         if (!MAPBOX_TOKEN) {
@@ -93,6 +98,55 @@ export default function MapComponent() {
         },
     };
 
+    const startSimulation = () => {
+        if (stops.length < 2) {
+            alert("Need at least 2 stops to drive!");
+            return;
+        }
+
+        setIsSimulating(true);
+        const line = turf.lineString(stops.map(s => s.coordinates));
+        const totalDistance = turf.length(line, { units: 'kilometers' });
+
+        let distanceTraveled = 0;
+        const speed = 0.05; // km per frame
+
+        const animate = () => {
+            if (distanceTraveled >= totalDistance) {
+                setIsSimulating(false);
+                setCarPosition(null);
+                return;
+            }
+
+            const point = turf.along(line, distanceTraveled, { units: 'kilometers' });
+
+            // Calculate bearing
+            if (distanceTraveled > 0) {
+                const prevPoint = turf.along(line, distanceTraveled - speed, { units: 'kilometers' });
+                const bearing = turf.bearing(prevPoint, point);
+                setCarBearing(bearing);
+
+                // Move Camera
+                if (mapRef.current) {
+                    mapRef.current.easeTo({
+                        center: point.geometry.coordinates as [number, number],
+                        bearing: bearing,
+                        pitch: 60,
+                        zoom: 17,
+                        duration: 0,
+                        easing: (t) => t
+                    });
+                }
+            }
+
+            setCarPosition(point);
+            distanceTraveled += speed;
+            requestAnimationFrame(animate);
+        };
+
+        animate();
+    };
+
     const isDark = theme === 'dark';
 
     return (
@@ -130,6 +184,8 @@ export default function MapComponent() {
                 />
 
                 <GeolocateControl position="top-left" />
+
+                <TimelineControl onStart={startSimulation} isSimulating={isSimulating} />
 
                 {/* 3D Buildings Layer */}
                 <Layer
@@ -179,6 +235,25 @@ export default function MapComponent() {
                                 "line-opacity": 0.9,
                                 "line-blur": isDark ? 3 : 0, // Glow effect only in dark mode
                             }}
+                        />
+                    </Source>
+                )}
+
+                {/* Car Layer */}
+                {carPosition && (
+                    <Source id="car-source" type="geojson" data={carPosition}>
+                        <Layer
+                            id="car-layer"
+                            type="symbol"
+                            layout={{
+                                'text-field': '🚗',
+                                'text-size': 50,
+                                'text-rotate': ['get', 'bearing'],
+                                'text-allow-overlap': true,
+                                'icon-allow-overlap': true,
+                                'text-rotation-alignment': 'map'
+                            }}
+                            paint={{}}
                         />
                     </Source>
                 )}
