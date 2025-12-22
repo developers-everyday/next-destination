@@ -23,12 +23,18 @@
     - **Sidebar Visibility**: Applied inline dark glassmorphism styles (`rgba(0,0,0,0.85)`) to `Sidebar.tsx` to ensure high contrast against the light map.
     - **User Geolocation**: Updated `Map.tsx` to auto-detect user location on load and `flyTo` coordinates.
 
+5.  **Itinerary Persistence**:
+    - **Session Restore**: Enabled `zustand/persist` to auto-save the active itinerary.
+    - **Database**: Created `db.ts` (IndexedDB) for saving multiple trips permanently.
+    - **UI**: Added "Save" and "My Trips" management in `Sidebar.tsx`.
+
 4.  **Version Control**:
     - Git initialized.
     - Commits made:
         - `voxtravel:1 Fix Mapbox black screen and configure voice agent tools`
         - `voxtravel:2 Implement auto-geolocation on map load`
         - `voxtravel:3 Fix missing @dnd-kit dependencies`
+        - `voxtravel:4 Implement itinerary persistence and My Trips structure`
 
 ---
 
@@ -36,7 +42,8 @@
 
 -   **Map**: `src/components/Map.tsx` - Functional, full-screen, 2D Streets style. Auto-geolocates.
 -   **Voice**: `src/components/VoiceAgent.tsx` - Functional. Requires `NEXT_PUBLIC_ELEVENLABS_AGENT_ID`.
--   **State**: `src/store/useItineraryStore.ts` - Functional (Zustand). Handles stops and focus.
+-   **State**: `src/store/useItineraryStore.ts` - Functional (Zustand + Persist). Handles stops and focus.
+-   **Storage**: `src/services/db.ts` - IndexedDB service for Trip management.
 -   **UI**: `src/components/Sidebar.tsx` - Functional. Displays itinerary list.
 
 ---

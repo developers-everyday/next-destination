@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { TripData } from '@/services/db';
 
 export interface Stop {
     id: string;
@@ -8,13 +10,13 @@ export interface Stop {
     notes?: string;
 }
 
-interface ItineraryDay {
+export interface ItineraryDay {
     day: number;
     narrative: string;
     stops: Stop[];
 }
 
-interface TripConstraints {
+export interface TripConstraints {
     destination?: string;
     duration?: string;
     vibe?: string;
@@ -32,41 +34,61 @@ interface ItineraryState {
     setFocusedLocation: (coordinates: [number, number]) => void;
     setItinerary: (itinerary: ItineraryDay[]) => void;
     setTripConstraints: (constraints: TripConstraints) => void;
+    loadItinerary: (tripData: TripData) => void;
 }
 
-export const useItineraryStore = create<ItineraryState>((set) => ({
-    stops: [],
-    focusedLocation: null,
-    itinerary: [],
-    tripConstraints: {},
+export const useItineraryStore = create<ItineraryState>()(
+    persist(
+        (set) => ({
+            stops: [],
+            focusedLocation: null,
+            itinerary: [],
+            tripConstraints: {},
 
-    addStop: (stop) => set((state) => ({
-        stops: [...state.stops, { ...stop, id: Math.random().toString(36).substring(7) }],
-    })),
+            addStop: (stop) => set((state) => ({
+                stops: [...state.stops, { ...stop, id: Math.random().toString(36).substring(7) }],
+            })),
 
-    removeStop: (id) => set((state) => ({
-        stops: state.stops.filter((s) => s.id !== id),
-        // Also remove from itinerary if present (optional complexity, keeping simple for now)
-        itinerary: state.itinerary.map(day => ({
-            ...day,
-            stops: day.stops.filter(s => s.id !== id)
-        }))
-    })),
+            removeStop: (id) => set((state) => ({
+                stops: state.stops.filter((s) => s.id !== id),
+                // Also remove from itinerary if present (optional complexity, keeping simple for now)
+                itinerary: state.itinerary.map(day => ({
+                    ...day,
+                    stops: day.stops.filter(s => s.id !== id)
+                }))
+            })),
 
-    reorderStops: (startIndex, endIndex) => set((state) => {
-        const newStops = [...state.stops];
-        const [removed] = newStops.splice(startIndex, 1);
-        newStops.splice(endIndex, 0, removed);
-        return { stops: newStops };
-    }),
+            reorderStops: (startIndex, endIndex) => set((state) => {
+                const newStops = [...state.stops];
+                const [removed] = newStops.splice(startIndex, 1);
+                newStops.splice(endIndex, 0, removed);
+                return { stops: newStops };
+            }),
 
-    setFocusedLocation: (coordinates) => set({ focusedLocation: coordinates }),
+            setFocusedLocation: (coordinates) => set({ focusedLocation: coordinates }),
 
-    setItinerary: (itinerary) => set({
-        itinerary,
-        // Flatten stops from itinerary to main stops list for map display
-        stops: itinerary.flatMap(day => day.stops)
-    }),
+            setItinerary: (itinerary) => set({
+                itinerary,
+                // Flatten stops from itinerary to main stops list for map display
+                stops: itinerary.flatMap(day => day.stops)
+            }),
 
-    setTripConstraints: (constraints) => set({ tripConstraints: constraints }),
-}));
+            setTripConstraints: (constraints) => set({ tripConstraints: constraints }),
+
+            loadItinerary: (tripData) => set({
+                stops: tripData.stops,
+                itinerary: tripData.itinerary,
+                tripConstraints: tripData.tripConstraints || {},
+                focusedLocation: tripData.center || null
+            })
+        }),
+        {
+            name: 'vox-travel-storage',
+            partialize: (state) => ({
+                stops: state.stops,
+                itinerary: state.itinerary,
+                tripConstraints: state.tripConstraints
+            }),
+        }
+    )
+);
