@@ -164,10 +164,10 @@ export default function Sidebar() {
     return (
         <div className="flex h-full items-start relative">
             <div
-                className={`h-full rounded-xl overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-in-out ${isCollapsed ? 'w-0 opacity-0 border-0 p-0' : 'w-80 rounded-xl border border-white/10'}`}
+                className={`h-full rounded-2xl overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-in-out ${isCollapsed ? 'w-0 opacity-0 border-0 p-0' : 'w-80 border border-white/10 m-4 shadow-2xl'}`}
                 style={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                    backdropFilter: 'blur(12px)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.3)', // More transparent
+                    backdropFilter: 'blur(24px)', // Stronger blur
                     color: 'white'
                 }}
             >

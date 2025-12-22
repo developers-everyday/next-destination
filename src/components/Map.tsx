@@ -24,6 +24,7 @@ export default function MapComponent() {
             mapRef.current.flyTo({
                 center: focusedLocation,
                 zoom: 14,
+                pitch: 60,
                 essential: true,
             });
         }
@@ -40,6 +41,7 @@ export default function MapComponent() {
                         mapRef.current.flyTo({
                             center: [position.coords.longitude, position.coords.latitude],
                             zoom: 14,
+                            pitch: 60,
                             essential: true,
                             duration: 2000
                         });
@@ -99,14 +101,65 @@ export default function MapComponent() {
                     longitude: 2.3522, // Paris
                     latitude: 48.8566,
                     zoom: 12,
+                    pitch: 60, // Initial pitch for 3D view
                 }}
                 onLoad={onMapLoad}
                 onClick={handleMapClick}
                 style={{ width: "100%", height: "100%" }}
-                mapStyle="mapbox://styles/mapbox/streets-v11"
+                mapStyle="mapbox://styles/mapbox/dark-v11"
                 mapboxAccessToken={MAPBOX_TOKEN}
+                projection={'globe' as any}
+                fog={{
+                    "range": [0.5, 10],
+                    "color": "rgba(255, 255, 255, 0.2)", // Slight atmospheric haze
+                    "horizon-blend": 0.3,
+                    "high-color": "#245bde",
+                    "space-color": "#000000",
+                    "star-intensity": 0.8
+                } as any}
+                terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
             >
+                <Source
+                    id="mapbox-dem"
+                    type="raster-dem"
+                    url="mapbox://mapbox.mapbox-terrain-dem-v1"
+                    tileSize={512}
+                    maxzoom={14}
+                />
+
                 <GeolocateControl position="top-left" />
+
+                {/* 3D Buildings Layer */}
+                <Layer
+                    id="3d-buildings"
+                    source="composite"
+                    source-layer="building"
+                    filter={['==', 'extrude', 'true']}
+                    type="fill-extrusion"
+                    minzoom={15}
+                    paint={{
+                        'fill-extrusion-color': '#aaa',
+                        'fill-extrusion-height': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            15,
+                            0,
+                            15.05,
+                            ['get', 'height']
+                        ],
+                        'fill-extrusion-base': [
+                            'interpolate',
+                            ['linear'],
+                            ['zoom'],
+                            15,
+                            0,
+                            15.05,
+                            ['get', 'min_height']
+                        ],
+                        'fill-extrusion-opacity': 0.6
+                    }}
+                />
 
                 {/* Render Route Line */}
                 {stops.length > 1 && (
@@ -119,9 +172,10 @@ export default function MapComponent() {
                                 "line-cap": "round",
                             }}
                             paint={{
-                                "line-color": "#3b82f6", // Blue color
-                                "line-width": 4,
-                                "line-opacity": 0.8,
+                                "line-color": "#00F0FF", // Neon Cyan
+                                "line-width": 6,
+                                "line-opacity": 0.9,
+                                "line-blur": 3, // Glow effect
                             }}
                         />
                     </Source>
@@ -136,10 +190,10 @@ export default function MapComponent() {
                         anchor="bottom"
                     >
                         <div className="flex flex-col items-center">
-                            <div className="bg-blue-600 p-2 rounded-full shadow-lg border-2 border-white">
-                                <MapPin className="text-white w-5 h-5" />
+                            <div className="bg-cyan-500 p-2 rounded-full shadow-[0_0_15px_rgba(0,240,255,0.7)] border-2 border-white animate-pulse">
+                                <MapPin className="text-black w-5 h-5" />
                             </div>
-                            <span className="mt-1 text-xs font-bold bg-black/80 text-white px-2 py-1 rounded">
+                            <span className="mt-1 text-xs font-bold bg-black/80 text-cyan-300 px-2 py-1 rounded border border-cyan-500/30 backdrop-blur-sm">
                                 {index + 1}. {stop.name}
                             </span>
                         </div>

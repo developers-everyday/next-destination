@@ -35,6 +35,12 @@
         - `voxtravel:2 Implement auto-geolocation on map load`
         - `voxtravel:3 Fix missing @dnd-kit dependencies`
         - `voxtravel:4 Implement itinerary persistence and My Trips structure`
+        - `voxtravel:5 Implement Cinematic UI Overhaul`
+
+5.  **Cinematic UI Overhaul**:
+    - **Map**: Updated to dark theme (`dark-v11`), enabled `globe` projection, atmospheric fog, and 3D buildings.
+    - **UI**: Enhanced sidebar with glassmorphism (blur, transparency, rounded corners).
+    - **Route**: Neon Cyan glowing route line.
 
 ---
 
