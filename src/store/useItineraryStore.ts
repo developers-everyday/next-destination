@@ -35,6 +35,8 @@ interface ItineraryState {
     setItinerary: (itinerary: ItineraryDay[]) => void;
     setTripConstraints: (constraints: TripConstraints) => void;
     loadItinerary: (tripData: TripData) => void;
+    theme: 'light' | 'dark';
+    toggleTheme: () => void;
 }
 
 export const useItineraryStore = create<ItineraryState>()(
@@ -44,6 +46,9 @@ export const useItineraryStore = create<ItineraryState>()(
             focusedLocation: null,
             itinerary: [],
             tripConstraints: {},
+            theme: 'dark', // Default to dark/cinematic mode
+
+            toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
 
             addStop: (stop) => set((state) => ({
                 stops: [...state.stops, { ...stop, id: Math.random().toString(36).substring(7) }],
@@ -87,7 +92,8 @@ export const useItineraryStore = create<ItineraryState>()(
             partialize: (state) => ({
                 stops: state.stops,
                 itinerary: state.itinerary,
-                tripConstraints: state.tripConstraints
+                tripConstraints: state.tripConstraints,
+                theme: state.theme
             }),
         }
     )

@@ -10,7 +10,7 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 export default function MapComponent() {
     const mapRef = useRef<MapRef>(null);
-    const { stops, focusedLocation, addStop } = useItineraryStore();
+    const { stops, focusedLocation, addStop, theme } = useItineraryStore();
 
     useEffect(() => {
         if (!MAPBOX_TOKEN) {
@@ -93,6 +93,8 @@ export default function MapComponent() {
         },
     };
 
+    const isDark = theme === 'dark';
+
     return (
         <div style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0 }}>
             <Map
@@ -106,17 +108,17 @@ export default function MapComponent() {
                 onLoad={onMapLoad}
                 onClick={handleMapClick}
                 style={{ width: "100%", height: "100%" }}
-                mapStyle="mapbox://styles/mapbox/dark-v11"
+                mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v11"}
                 mapboxAccessToken={MAPBOX_TOKEN}
                 projection={'globe' as any}
-                fog={{
+                fog={isDark ? {
                     "range": [0.5, 10],
                     "color": "rgba(255, 255, 255, 0.2)", // Slight atmospheric haze
                     "horizon-blend": 0.3,
                     "high-color": "#245bde",
                     "space-color": "#000000",
                     "star-intensity": 0.8
-                } as any}
+                } as any : undefined}
                 terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
             >
                 <Source
@@ -138,7 +140,7 @@ export default function MapComponent() {
                     type="fill-extrusion"
                     minzoom={15}
                     paint={{
-                        'fill-extrusion-color': '#aaa',
+                        'fill-extrusion-color': isDark ? '#aaa' : '#ddd',
                         'fill-extrusion-height': [
                             'interpolate',
                             ['linear'],
@@ -172,10 +174,10 @@ export default function MapComponent() {
                                 "line-cap": "round",
                             }}
                             paint={{
-                                "line-color": "#00F0FF", // Neon Cyan
+                                "line-color": isDark ? "#00F0FF" : "#3b82f6", // Neon Cyan vs Blue
                                 "line-width": 6,
                                 "line-opacity": 0.9,
-                                "line-blur": 3, // Glow effect
+                                "line-blur": isDark ? 3 : 0, // Glow effect only in dark mode
                             }}
                         />
                     </Source>
@@ -190,10 +192,10 @@ export default function MapComponent() {
                         anchor="bottom"
                     >
                         <div className="flex flex-col items-center">
-                            <div className="bg-cyan-500 p-2 rounded-full shadow-[0_0_15px_rgba(0,240,255,0.7)] border-2 border-white animate-pulse">
-                                <MapPin className="text-black w-5 h-5" />
+                            <div className={`p-2 rounded-full border-2 border-white ${isDark ? 'bg-cyan-500 shadow-[0_0_15px_rgba(0,240,255,0.7)] animate-pulse' : 'bg-blue-600 shadow-lg'}`}>
+                                <MapPin className={`${isDark ? 'text-black' : 'text-white'} w-5 h-5`} />
                             </div>
-                            <span className="mt-1 text-xs font-bold bg-black/80 text-cyan-300 px-2 py-1 rounded border border-cyan-500/30 backdrop-blur-sm">
+                            <span className={`mt-1 text-xs font-bold px-2 py-1 rounded backdrop-blur-sm ${isDark ? 'bg-black/80 text-cyan-300 border border-cyan-500/30' : 'bg-white/90 text-blue-700 shadow-sm'}`}>
                                 {index + 1}. {stop.name}
                             </span>
                         </div>

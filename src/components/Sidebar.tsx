@@ -21,7 +21,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-function SortableStopItem({ stop, index, onRemove, onFocus }: { stop: any, index: number, onRemove: (id: string) => void, onFocus: (coords: [number, number]) => void }) {
+function SortableStopItem({ stop, index, onRemove, onFocus, isDark }: { stop: any, index: number, onRemove: (id: string) => void, onFocus: (coords: [number, number]) => void, isDark: boolean }) {
     const {
         attributes,
         listeners,
@@ -43,8 +43,8 @@ function SortableStopItem({ stop, index, onRemove, onFocus }: { stop: any, index
             ref={setNodeRef}
             style={{
                 ...style,
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+                border: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(0, 0, 0, 0.05)',
                 marginBottom: '12px'
             }}
             className={`group p-3 rounded-lg flex items-center gap-3 transition-colors ${isDragging ? 'bg-black/80 ring-2 ring-blue-500' : ''}`}
@@ -53,20 +53,20 @@ function SortableStopItem({ stop, index, onRemove, onFocus }: { stop: any, index
             <div
                 {...attributes}
                 {...listeners}
-                style={{ color: '#9ca3af', cursor: 'grab', touchAction: 'none' }}
-                className="hover:text-white"
+                style={{ color: isDark ? '#9ca3af' : '#6b7280', cursor: 'grab', touchAction: 'none' }}
+                className={isDark ? "hover:text-white" : "hover:text-black"}
             >
                 <GripVertical size={16} />
             </div>
 
             <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                style={{ backgroundColor: 'rgba(37, 99, 235, 0.2)', color: '#60a5fa' }}>
+                style={{ backgroundColor: isDark ? 'rgba(37, 99, 235, 0.2)' : 'rgba(37, 99, 235, 0.1)', color: '#60a5fa' }}>
                 {index + 1}
             </div>
 
             <div className="flex-1 min-w-0">
-                <h3 className="font-semibold truncate" style={{ color: 'white' }}>{stop.name}</h3>
-                <p className="text-xs" style={{ color: '#9ca3af' }}>Day {stop.dayIndex || 1}</p>
+                <h3 className="font-semibold truncate" style={{ color: isDark ? 'white' : '#1f2937' }}>{stop.name}</h3>
+                <p className="text-xs" style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>Day {stop.dayIndex || 1}</p>
             </div>
 
             <button
@@ -74,7 +74,7 @@ function SortableStopItem({ stop, index, onRemove, onFocus }: { stop: any, index
                     e.stopPropagation();
                     onRemove(stop.id);
                 }}
-                className="p-1 opacity-100 hover:bg-white/10 rounded"
+                className={`p-1 opacity-100 rounded ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
                 style={{ color: '#ef4444' }}
             >
                 <Trash2 size={16} />
@@ -84,7 +84,7 @@ function SortableStopItem({ stop, index, onRemove, onFocus }: { stop: any, index
 }
 
 export default function Sidebar() {
-    const { stops, removeStop, setFocusedLocation, itinerary, reorderStops, tripConstraints, loadItinerary } = useItineraryStore();
+    const { stops, removeStop, setFocusedLocation, itinerary, reorderStops, tripConstraints, loadItinerary, theme, toggleTheme } = useItineraryStore();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [showTrips, setShowTrips] = useState(false);
     const [savedTrips, setSavedTrips] = useState<TripMetadata[]>([]);
@@ -161,32 +161,35 @@ export default function Sidebar() {
         setSavedTrips(trips);
     };
 
+    const isDark = theme === 'dark';
+
     return (
         <div className="flex h-full items-start relative">
             <div
-                className={`h-full rounded-2xl overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-in-out ${isCollapsed ? 'w-0 opacity-0 border-0 p-0' : 'w-80 border border-white/10 m-4 shadow-2xl'}`}
+                className={`h-full rounded-2xl overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-in-out ${isCollapsed ? 'w-0 opacity-0 border-0 p-0' : 'w-80 m-4 shadow-2xl'}`}
                 style={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.3)', // More transparent
-                    backdropFilter: 'blur(24px)', // Stronger blur
-                    color: 'white'
+                    backgroundColor: isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.75)',
+                    backdropFilter: 'blur(24px)',
+                    color: isDark ? 'white' : 'black',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.4)'
                 }}
             >
                 {/* Header */}
-                <div className="p-4 flex flex-col gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                <div className="p-4 flex flex-col gap-2" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}>
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold" style={{ color: '#60a5fa' }}>
+                        <h2 className={`text-xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                             {tripConstraints.destination || "Itinerary"}
                         </h2>
                         <div className="flex gap-1">
-                            <button onClick={handleSaveTrip} className="p-2 hover:bg-white/10 rounded-full text-green-400" title="Save Trip">
+                            <button onClick={handleSaveTrip} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-green-400' : 'hover:bg-black/5 text-green-600'}`} title="Save Trip">
                                 <Save size={18} />
                             </button>
-                            <button onClick={handleLoadTrips} className="p-2 hover:bg-white/10 rounded-full text-blue-400" title="My Trips">
+                            <button onClick={handleLoadTrips} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-black/5 text-blue-500'}`} title="My Trips">
                                 <FolderOpen size={18} />
                             </button>
                         </div>
                     </div>
-                    <p className="text-xs" style={{ color: '#9ca3af' }}>
+                    <p className="text-xs" style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
                         {itinerary.length > 0 ? `${itinerary.length} Days Planned` : `${stops.length} stops planned`}
                     </p>
                 </div>
@@ -207,20 +210,20 @@ export default function Sidebar() {
                             {itinerary.length > 0 ? (
                                 itinerary.map((day) => (
                                     <div key={day.day} className="space-y-3">
-                                        <h3 className="font-bold text-lg text-blue-400 border-b border-gray-700 pb-1">Day {day.day}</h3>
-                                        <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{day.narrative}</p>
-                                        <div className="space-y-2 pl-2 border-l-2 border-gray-800">
+                                        <h3 className={`font-bold text-lg border-b pb-1 ${isDark ? 'text-blue-400 border-gray-700' : 'text-blue-600 border-gray-200'}`}>Day {day.day}</h3>
+                                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{day.narrative}</p>
+                                        <div className={`space-y-2 pl-2 border-l-2 ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
                                             {day.stops.map((stop, index) => (
                                                 <div
                                                     key={stop.id}
-                                                    className="group p-2 rounded flex items-center gap-3 transition-all cursor-pointer hover:bg-white/5"
+                                                    className={`group p-2 rounded flex items-center gap-3 transition-all cursor-pointer ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
                                                     onClick={() => setFocusedLocation(stop.coordinates)}
                                                 >
-                                                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-blue-500/20 text-blue-400">
+                                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
                                                         {index + 1}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <span className="text-sm font-medium text-white truncate">{stop.name}</span>
+                                                        <span className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-800'}`}>{stop.name}</span>
                                                     </div>
                                                 </div>
                                             ))}
@@ -228,7 +231,7 @@ export default function Sidebar() {
                                     </div>
                                 ))
                             ) : stops.length === 0 ? (
-                                <div className="text-center mt-10" style={{ color: '#6b7280' }}>
+                                <div className="text-center mt-10" style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>
                                     <p>No stops yet.</p>
                                     <p className="text-sm mt-2">"Take me to Paris"</p>
                                 </div>
@@ -249,6 +252,7 @@ export default function Sidebar() {
                                                 index={index}
                                                 onRemove={removeStop}
                                                 onFocus={setFocusedLocation}
+                                                isDark={isDark}
                                             />
                                         ))}
                                     </SortableContext>
@@ -259,8 +263,8 @@ export default function Sidebar() {
                 ) : (
                     <div className="flex-1 overflow-y-auto p-4">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-white">Stored Trips</h3>
-                            <button onClick={() => setShowTrips(false)} className="p-1 hover:bg-white/10 rounded">
+                            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Stored Trips</h3>
+                            <button onClick={() => setShowTrips(false)} className={`p-1 rounded ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
                                 <X size={20} />
                             </button>
                         </div>
@@ -272,9 +276,9 @@ export default function Sidebar() {
                                     <div
                                         key={trip.id}
                                         onClick={() => loadTrip(trip.id)}
-                                        className="p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer border border-white/5 transition-colors group relative"
+                                        className={`p-3 rounded-lg cursor-pointer border transition-colors group relative ${isDark ? 'bg-white/5 hover:bg-white/10 border-white/5' : 'bg-white/50 hover:bg-white/80 border-gray-200 shadow-sm'}`}
                                     >
-                                        <h4 className="font-semibold text-blue-300">{trip.name}</h4>
+                                        <h4 className={`font-semibold ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>{trip.name}</h4>
                                         <p className="text-xs text-gray-400 mt-1">{new Date(trip.updatedAt).toLocaleDateString()}</p>
                                         <button
                                             onClick={(e) => deleteTrip(e, trip.id)}
@@ -291,14 +295,24 @@ export default function Sidebar() {
                 )}
             </div>
 
-            {/* Toggle Button */}
-            <button
-                onClick={() => setIsCollapsed(!isCollapsed)}
-                className="ml-2 mt-4 p-2 bg-black/80 text-white rounded-lg backdrop-blur-md border border-white/20 hover:bg-black transition-all shadow-xl pointer-events-auto"
-                title={isCollapsed ? "Expand Itinerary" : "Collapse Itinerary"}
-            >
-                {isCollapsed ? <MapIcon size={20} /> : <ChevronLeft size={20} />}
-            </button>
+            {/* Controls */}
+            <div className="flex flex-col gap-2 ml-2 mt-4 pointer-events-auto">
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className={`p-2 rounded-lg backdrop-blur-md border shadow-xl transition-all ${isDark ? 'bg-black/80 text-white border-white/20 hover:bg-black' : 'bg-white/80 text-black border-white/60 hover:bg-white'}`}
+                    title={isCollapsed ? "Expand Itinerary" : "Collapse Itinerary"}
+                >
+                    {isCollapsed ? <MapIcon size={20} /> : <ChevronLeft size={20} />}
+                </button>
+
+                <button
+                    onClick={toggleTheme}
+                    className={`p-2 rounded-lg backdrop-blur-md border shadow-xl transition-all ${isDark ? 'bg-black/80 text-yellow-400 border-white/20 hover:bg-black' : 'bg-white/80 text-indigo-600 border-white/60 hover:bg-white'}`}
+                    title="Toggle Theme"
+                >
+                    {isDark ? "☀" : "☾"}
+                </button>
+            </div>
         </div>
     );
 }
