@@ -185,8 +185,6 @@ export default function MapComponent() {
 
                 <GeolocateControl position="top-left" />
 
-                <TimelineControl onStart={startSimulation} isSimulating={isSimulating} />
-
                 {/* 3D Buildings Layer */}
                 <Layer
                     id="3d-buildings"
@@ -277,6 +275,7 @@ export default function MapComponent() {
                     </Marker>
                 ))}
             </Map>
+            <TimelineControl onStart={startSimulation} isSimulating={isSimulating} />
         </div>
     );
 }

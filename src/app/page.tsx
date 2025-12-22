@@ -20,7 +20,7 @@ export default function Home() {
         </div>
 
         {/* Voice Agent Overlay (Bottom Center or floating) */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 pointer-events-auto">
+        <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 pointer-events-auto">
           <VoiceAgent />
         </div>
       </div>

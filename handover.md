@@ -36,6 +36,7 @@
         - `voxtravel:3 Fix missing @dnd-kit dependencies`
         - `voxtravel:4 Implement itinerary persistence and My Trips structure`
         - `voxtravel:5 Implement Cinematic UI Overhaul`
+        - `voxtravel:6 Fix 'Start Drive' button visibility and positioning`
 
 5.  **Cinematic UI Overhaul**:
     - **Map**: Updated to dark theme (`dark-v11`), enabled `globe` projection, atmospheric fog, and 3D buildings.
