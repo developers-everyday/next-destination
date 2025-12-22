@@ -265,10 +265,21 @@ export default function MapComponent() {
                         anchor="bottom"
                     >
                         <div className="flex flex-col items-center">
-                            <div className={`p-2 rounded-full border-2 border-white ${isDark ? 'bg-cyan-500 shadow-[0_0_15px_rgba(0,240,255,0.7)] animate-pulse' : 'bg-blue-600 shadow-lg'}`}>
-                                <MapPin className={`${isDark ? 'text-black' : 'text-white'} w-5 h-5`} />
+                            <div
+                                className={`p-2 rounded-full border-2 border-white ${isDark ? 'shadow-[0_0_15px_rgba(0,240,255,0.7)] animate-pulse' : 'shadow-lg'}`}
+                                style={{ backgroundColor: isDark ? '#06b6d4' : '#dc2626' }}
+                            >
+                                <MapPin className="w-5 h-5" style={{ color: isDark ? '#000000' : '#ffffff' }} />
                             </div>
-                            <span className={`mt-1 text-xs font-bold px-2 py-1 rounded backdrop-blur-sm ${isDark ? 'bg-black/80 text-cyan-300 border border-cyan-500/30' : 'bg-white/90 text-blue-700 shadow-sm'}`}>
+                            <span
+                                className="mt-1 text-xs font-bold px-2 py-1 rounded backdrop-blur-sm shadow-sm"
+                                style={{
+                                    backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)',
+                                    color: isDark ? '#67e8f9' : '#b91c1c',
+                                    borderColor: isDark ? 'rgba(6,182,212,0.3)' : 'transparent',
+                                    borderWidth: isDark ? '1px' : '0px'
+                                }}
+                            >
                                 {index + 1}. {stop.name}
                             </span>
                         </div>

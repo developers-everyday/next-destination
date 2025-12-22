@@ -37,11 +37,16 @@
         - `voxtravel:4 Implement itinerary persistence and My Trips structure`
         - `voxtravel:5 Implement Cinematic UI Overhaul`
         - `voxtravel:6 Fix 'Start Drive' button visibility and positioning`
+        - `voxtravel:7 Fix light mode map pin visibility`
 
 5.  **Cinematic UI Overhaul**:
     - **Map**: Updated to dark theme (`dark-v11`), enabled `globe` projection, atmospheric fog, and 3D buildings.
     - **UI**: Enhanced sidebar with glassmorphism (blur, transparency, rounded corners).
     - **Route**: Neon Cyan glowing route line.
+
+6.  **Map Pin Visibility**:
+    - Fixed issue where map pins were white/invisible in light mode.
+    - Applied inline styles (`bg-red-600` equivalent) to force Red pin visibility.
 
 ---
 
