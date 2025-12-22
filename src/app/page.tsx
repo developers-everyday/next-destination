@@ -15,13 +15,13 @@ export default function Home() {
       {/* Floating UI Layer */}
       <div className="relative z-10 pointer-events-none w-full h-full flex">
         {/* Sidebar (Left) */}
-        <div className="pointer-events-auto w-80 h-full p-4">
-           <Sidebar />
+        <div className="pointer-events-auto w-auto h-full p-4 z-40">
+          <Sidebar />
         </div>
-        
+
         {/* Voice Agent Overlay (Bottom Center or floating) */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 pointer-events-auto">
-           <VoiceAgent />
+          <VoiceAgent />
         </div>
       </div>
     </main>

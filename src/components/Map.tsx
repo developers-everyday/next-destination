@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Map, Marker, Layer, Source, MapRef } from "react-map-gl/mapbox";
+import { Map, Marker, Layer, Source, MapRef, GeolocateControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useItineraryStore } from "@/store/useItineraryStore";
 import { MapPin } from "lucide-react";
@@ -10,7 +10,7 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 export default function MapComponent() {
     const mapRef = useRef<MapRef>(null);
-    const { stops, focusedLocation } = useItineraryStore();
+    const { stops, focusedLocation, addStop } = useItineraryStore();
 
     useEffect(() => {
         if (!MAPBOX_TOKEN) {
@@ -30,25 +30,52 @@ export default function MapComponent() {
     }, [focusedLocation]);
 
     // Get User's Current Location
-    useEffect(() => {
+    const onMapLoad = () => {
+        console.log("Map loaded, checking geolocation...");
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
+                    console.log("Flying to user location:", position.coords);
                     if (mapRef.current) {
                         mapRef.current.flyTo({
                             center: [position.coords.longitude, position.coords.latitude],
                             zoom: 14,
                             essential: true,
+                            duration: 2000
                         });
                     }
                 },
                 (error) => {
-                    console.warn("Error getting location:", error);
-                    // Fallback to default (Paris) is already handled by initialViewState
+                    console.error("Error getting location:", error);
                 }
             );
         }
-    }, []);
+    };
+
+    const handleMapClick = async (event: any) => {
+        const { lng, lat } = event.lngLat;
+        try {
+            const response = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`
+            );
+            const data = await response.json();
+            const placeName = data.features?.[0]?.text || "Pinned Location";
+
+            addStop({
+                name: placeName,
+                coordinates: [lng, lat],
+                dayIndex: 1
+            });
+        } catch (error) {
+            console.error("Reverse geocoding failed:", error);
+            // Fallback
+            addStop({
+                name: "Pinned Location",
+                coordinates: [lng, lat],
+                dayIndex: 1
+            });
+        }
+    };
 
     if (!MAPBOX_TOKEN) {
         return <div className="w-full h-full flex items-center justify-center text-white bg-gray-900">Mapbox Token Missing</div>;
@@ -73,10 +100,14 @@ export default function MapComponent() {
                     latitude: 48.8566,
                     zoom: 12,
                 }}
+                onLoad={onMapLoad}
+                onClick={handleMapClick}
                 style={{ width: "100%", height: "100%" }}
                 mapStyle="mapbox://styles/mapbox/streets-v11"
                 mapboxAccessToken={MAPBOX_TOKEN}
             >
+                <GeolocateControl position="top-left" />
+
                 {/* Render Route Line */}
                 {stops.length > 1 && (
                     <Source type="geojson" data={routeGeoJSON as any}>

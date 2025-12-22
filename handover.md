@@ -28,6 +28,7 @@
     - Commits made:
         - `voxtravel:1 Fix Mapbox black screen and configure voice agent tools`
         - `voxtravel:2 Implement auto-geolocation on map load`
+        - `voxtravel:3 Fix missing @dnd-kit dependencies`
 
 ---
 
@@ -65,3 +66,13 @@ Ensure `.env.local` contains:
 NEXT_PUBLIC_MAPBOX_TOKEN=pk...
 NEXT_PUBLIC_ELEVENLABS_AGENT_ID=...
 ```
+
+
+
+#Future Work:
+
+1. Okay, let's think like a product builder and life solving a real problem.
+
+We will already have itinerary ready with us, for example, we will be creating 10 to 15 itinerary based on number of days, trip, time, etc and it will save it on the box customers can easily get the whole idea about their trip. Addition to this we will also have smart agents helping user, customise the ordinary. Even user will also have option to go ahead and customise it manually.
+
+Now doing this will limit Call to LLM models and will have a better control. What users will see.
