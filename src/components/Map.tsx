@@ -162,18 +162,24 @@ export default function MapComponent() {
                 onLoad={onMapLoad}
                 onClick={handleMapClick}
                 style={{ width: "100%", height: "100%" }}
-                mapStyle={isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v11"}
+                mapStyle={isDark ? "mapbox://styles/mapbox/navigation-night-v1" : "mapbox://styles/mapbox/streets-v11"}
                 mapboxAccessToken={MAPBOX_TOKEN}
                 projection={'globe' as any}
                 fog={isDark ? {
                     "range": [0.5, 10],
-                    "color": "rgba(255, 255, 255, 0.2)", // Slight atmospheric haze
-                    "horizon-blend": 0.3,
-                    "high-color": "#245bde",
+                    "color": "#001e3c",      // Deep Cyber Blue
+                    "high-color": "#0a1f3d", // Lighter blue near horizon
                     "space-color": "#000000",
-                    "star-intensity": 0.8
+                    "horizon-blend": 0.05,
+                    "star-intensity": 0.5
                 } as any : undefined}
                 terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
+                light={isDark ? {
+                    anchor: 'viewport',
+                    color: 'white',
+                    intensity: 0.4,
+                    position: [1.5, 90, 80]
+                } as any : undefined}
             >
                 <Source
                     id="mapbox-dem"
@@ -220,20 +226,39 @@ export default function MapComponent() {
                 {/* Render Route Line */}
                 {stops.length > 1 && (
                     <Source type="geojson" data={routeGeoJSON as any}>
+                        {/* Glow / Main Line */}
                         <Layer
-                            id="route"
+                            id="route-line"
                             type="line"
                             layout={{
                                 "line-join": "round",
                                 "line-cap": "round",
                             }}
+                            beforeId={carPosition ? "car-layer" : undefined}
                             paint={{
-                                "line-color": isDark ? "#00F0FF" : "#3b82f6", // Neon Cyan vs Blue
-                                "line-width": 6,
-                                "line-opacity": 0.9,
-                                "line-blur": isDark ? 3 : 0, // Glow effect only in dark mode
+                                "line-color": isDark ? "#00f0ff" : "#3b82f6",
+                                "line-width": isDark ? 8 : 6,
+                                "line-opacity": isDark ? 0.8 : 0.8,
+                                "line-blur": isDark ? 3 : 0,
                             }}
                         />
+                        {/* Core Line (White Hot Center) - Dark Mode Only */}
+                        {isDark && (
+                            <Layer
+                                id="route-core"
+                                type="line"
+                                layout={{
+                                    "line-join": "round",
+                                    "line-cap": "round",
+                                }}
+                                beforeId={carPosition ? "car-layer" : undefined}
+                                paint={{
+                                    "line-color": "#ffffff",
+                                    "line-width": 2,
+                                    "line-opacity": 1,
+                                }}
+                            />
+                        )}
                     </Source>
                 )}
 

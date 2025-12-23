@@ -1,5 +1,5 @@
 import { useItineraryStore } from "@/store/useItineraryStore";
-import { Trash2, GripVertical, ChevronLeft, Map as MapIcon, Save, FolderOpen, X } from "lucide-react";
+import { Trash2, GripVertical, ChevronLeft, Map as MapIcon, Save, FolderOpen, X, ChevronDown, ChevronRight } from "lucide-react";
 import { useMemo, useState, useEffect } from 'react';
 import SearchBox from "./SearchBox";
 import { dbService, TripMetadata } from "@/services/db";
@@ -79,6 +79,52 @@ function SortableStopItem({ stop, index, onRemove, onFocus, isDark }: { stop: an
             >
                 <Trash2 size={16} />
             </button>
+        </div>
+    );
+}
+
+function DaySection({ day, isDark, onFocus }: { day: any, isDark: boolean, onFocus: (coords: [number, number]) => void }) {
+    const [isExpanded, setIsExpanded] = useState(true);
+
+    return (
+        <div className={`rounded-xl transition-all duration-300 overflow-hidden border ${isDark ? 'bg-white/5 border-white/5' : 'bg-white/40 border-gray-200'}`}>
+            <div
+                className={`p-3 flex items-center justify-between cursor-pointer transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-white/60'}`}
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <div>
+                    <h3 className={`font-bold text-lg flex items-center gap-2 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                        Day {day.day}
+                    </h3>
+                </div>
+                <div className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+                    {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                </div>
+            </div>
+
+            <div className={`transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                <div className="p-3 pt-0">
+                    <p className={`text-sm leading-relaxed whitespace-pre-wrap mb-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {day.narrative}
+                    </p>
+                    <div className={`space-y-2 pl-2 border-l-2 ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+                        {day.stops.map((stop: any, index: number) => (
+                            <div
+                                key={stop.id}
+                                className={`group p-2 rounded-lg flex items-center gap-3 transition-all cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-blue-50'}`}
+                                onClick={() => onFocus(stop.coordinates)}
+                            >
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-white text-blue-600 border border-blue-100'}`}>
+                                    {index + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <span className={`text-sm font-medium truncate block ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{stop.name}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
@@ -166,18 +212,23 @@ export default function Sidebar() {
     return (
         <div className="flex h-full items-start relative">
             <div
-                className={`h-full rounded-2xl overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-in-out ${isCollapsed ? 'w-0 opacity-0 border-0 p-0' : 'w-80 m-4 shadow-2xl'}`}
-                style={{
-                    backgroundColor: isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.75)',
+                className={`h-full rounded-2xl overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-in-out 
+                    ${isCollapsed ? 'w-0 opacity-0 border-0 p-0' : 'w-80 m-4'}
+                    ${isDark
+                        ? 'bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] text-white'
+                        : 'shadow-2xl text-black'
+                    }
+                `}
+                style={!isDark ? {
+                    backgroundColor: 'rgba(255, 255, 255, 0.75)',
                     backdropFilter: 'blur(24px)',
-                    color: isDark ? 'white' : 'black',
-                    border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.4)'
-                }}
+                    border: '1px solid rgba(255, 255, 255, 0.4)'
+                } : {}}
             >
                 {/* Header */}
-                <div className="p-4 flex flex-col gap-2" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}>
+                <div className="p-4 flex flex-col gap-2" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
                     <div className="flex items-center justify-between">
-                        <h2 className={`text-xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                        <h2 className={`text-xl font-bold ${isDark ? 'bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent' : 'text-blue-600'}`}>
                             {tripConstraints.destination || "Itinerary"}
                         </h2>
                         <div className="flex gap-1">
@@ -207,56 +258,26 @@ export default function Sidebar() {
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                            {itinerary.length > 0 ? (
-                                itinerary.map((day) => (
-                                    <div key={day.day} className="space-y-3">
-                                        <h3 className={`font-bold text-lg border-b pb-1 ${isDark ? 'text-blue-400 border-gray-700' : 'text-blue-600 border-gray-200'}`}>Day {day.day}</h3>
-                                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{day.narrative}</p>
-                                        <div className={`space-y-2 pl-2 border-l-2 ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-                                            {day.stops.map((stop, index) => (
-                                                <div
-                                                    key={stop.id}
-                                                    className={`group p-2 rounded flex items-center gap-3 transition-all cursor-pointer ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
-                                                    onClick={() => setFocusedLocation(stop.coordinates)}
-                                                >
-                                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
-                                                        {index + 1}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-800'}`}>{stop.name}</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))
-                            ) : stops.length === 0 ? (
+                            {(itinerary.length > 0 ? itinerary : Object.values(stops.reduce((acc: any, stop) => {
+                                const day = stop.dayIndex || 1;
+                                if (!acc[day]) acc[day] = { day, narrative: '', stops: [] };
+                                acc[day].stops.push(stop);
+                                return acc;
+                            }, {} as Record<number, any>)).sort((a: any, b: any) => a.day - b.day))
+                                .map((day: any) => (
+                                    <DaySection
+                                        key={day.day}
+                                        day={day}
+                                        isDark={isDark}
+                                        onFocus={setFocusedLocation}
+                                    />
+                                ))}
+
+                            {stops.length === 0 && itinerary.length === 0 && (
                                 <div className="text-center mt-10" style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>
                                     <p>No stops yet.</p>
                                     <p className="text-sm mt-2">"Take me to Paris"</p>
                                 </div>
-                            ) : (
-                                <DndContext
-                                    sensors={sensors}
-                                    collisionDetection={closestCenter}
-                                    onDragEnd={handleDragEnd}
-                                >
-                                    <SortableContext
-                                        items={stops.map(s => s.id)}
-                                        strategy={verticalListSortingStrategy}
-                                    >
-                                        {stops.map((stop, index) => (
-                                            <SortableStopItem
-                                                key={stop.id}
-                                                stop={stop}
-                                                index={index}
-                                                onRemove={removeStop}
-                                                onFocus={setFocusedLocation}
-                                                isDark={isDark}
-                                            />
-                                        ))}
-                                    </SortableContext>
-                                </DndContext>
                             )}
                         </div>
                     </>
