@@ -234,7 +234,6 @@ export default function MapComponent() {
                                 "line-join": "round",
                                 "line-cap": "round",
                             }}
-                            beforeId={carPosition ? "car-layer" : undefined}
                             paint={{
                                 "line-color": isDark ? "#00f0ff" : "#3b82f6",
                                 "line-width": isDark ? 8 : 6,
@@ -251,7 +250,6 @@ export default function MapComponent() {
                                     "line-join": "round",
                                     "line-cap": "round",
                                 }}
-                                beforeId={carPosition ? "car-layer" : undefined}
                                 paint={{
                                     "line-color": "#ffffff",
                                     "line-width": 2,

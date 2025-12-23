@@ -38,6 +38,7 @@
         - `voxtravel:5 Implement Cinematic UI Overhaul`
         - `voxtravel:6 Fix 'Start Drive' button visibility and positioning`
         - `voxtravel:7 Fix light mode map pin visibility`
+        - `voxtravel:8 Implement Story Mode, UI Polish, and Revert Sidebar`
 
 5.  **Cinematic UI Overhaul**:
     - **Map**: Updated to dark theme (`dark-v11`), enabled `globe` projection, atmospheric fog, and 3D buildings.

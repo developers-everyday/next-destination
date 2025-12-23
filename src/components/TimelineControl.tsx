@@ -26,7 +26,7 @@ export default function TimelineControl({ onStart, isSimulating }: TimelineContr
                 `}
             >
                 {isSimulating ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 fill-current" />}
-                <span className="font-bold text-lg">Start Drive</span>
+                <span className="font-bold text-lg">Start Journey</span>
             </button>
         </div>
     );

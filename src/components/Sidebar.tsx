@@ -1,5 +1,5 @@
 import { useItineraryStore } from "@/store/useItineraryStore";
-import { Trash2, GripVertical, ChevronLeft, Map as MapIcon, Save, FolderOpen, X, ChevronDown, ChevronRight } from "lucide-react";
+import { Trash2, GripVertical, ChevronLeft, Map as MapIcon, Save, FolderOpen, X, ChevronDown, ChevronRight, Play } from "lucide-react";
 import { useMemo, useState, useEffect } from 'react';
 import SearchBox from "./SearchBox";
 import { dbService, TripMetadata } from "@/services/db";
@@ -130,7 +130,7 @@ function DaySection({ day, isDark, onFocus }: { day: any, isDark: boolean, onFoc
 }
 
 export default function Sidebar() {
-    const { stops, removeStop, setFocusedLocation, itinerary, reorderStops, tripConstraints, loadItinerary, theme, toggleTheme } = useItineraryStore();
+    const { stops, removeStop, setFocusedLocation, itinerary, reorderStops, tripConstraints, loadItinerary, theme, toggleTheme, toggleStoryMode } = useItineraryStore();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [showTrips, setShowTrips] = useState(false);
     const [savedTrips, setSavedTrips] = useState<TripMetadata[]>([]);
@@ -215,23 +215,32 @@ export default function Sidebar() {
                 className={`h-full rounded-2xl overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-in-out 
                     ${isCollapsed ? 'w-0 opacity-0 border-0 p-0' : 'w-80 m-4'}
                     ${isDark
-                        ? 'bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)] text-white'
+                        ? 'bg-[#0b1121]/90 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] text-white'
                         : 'shadow-2xl text-black'
                     }
                 `}
                 style={!isDark ? {
-                    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
                     backdropFilter: 'blur(24px)',
                     border: '1px solid rgba(255, 255, 255, 0.4)'
                 } : {}}
             >
                 {/* Header */}
-                <div className="p-4 flex flex-col gap-2" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
+                <div className="p-4 flex flex-col gap-2 shrink-0" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
                     <div className="flex items-center justify-between">
-                        <h2 className={`text-xl font-bold ${isDark ? 'bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent' : 'text-blue-600'}`}>
+                        <h2 className={`text-xl font-bold truncate pr-2 ${isDark ? 'bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent' : 'text-blue-600'}`}>
                             {tripConstraints.destination || "Itinerary"}
                         </h2>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 shrink-0">
+                            {(itinerary.length > 0 || stops.length > 0) && (
+                                <button
+                                    onClick={toggleStoryMode}
+                                    className={`p-2 rounded-full mr-1 ${isDark ? 'hover:bg-white/10 text-cyan-400' : 'hover:bg-black/5 text-cyan-600'}`}
+                                    title="Play Trip"
+                                >
+                                    <Play size={18} fill="currentColor" />
+                                </button>
+                            )}
                             <button onClick={handleSaveTrip} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-green-400' : 'hover:bg-black/5 text-green-600'}`} title="Save Trip">
                                 <Save size={18} />
                             </button>
@@ -258,20 +267,27 @@ export default function Sidebar() {
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                            {(itinerary.length > 0 ? itinerary : Object.values(stops.reduce((acc: any, stop) => {
-                                const day = stop.dayIndex || 1;
-                                if (!acc[day]) acc[day] = { day, narrative: '', stops: [] };
-                                acc[day].stops.push(stop);
-                                return acc;
-                            }, {} as Record<number, any>)).sort((a: any, b: any) => a.day - b.day))
-                                .map((day: any) => (
-                                    <DaySection
-                                        key={day.day}
-                                        day={day}
-                                        isDark={isDark}
-                                        onFocus={setFocusedLocation}
-                                    />
-                                ))}
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
+                            >
+                                <SortableContext
+                                    items={stops.map(s => s.id)}
+                                    strategy={verticalListSortingStrategy}
+                                >
+                                    {stops.map((stop, index) => (
+                                        <SortableStopItem
+                                            key={stop.id}
+                                            stop={stop}
+                                            index={index}
+                                            onRemove={removeStop}
+                                            onFocus={setFocusedLocation}
+                                            isDark={isDark}
+                                        />
+                                    ))}
+                                </SortableContext>
+                            </DndContext>
 
                             {stops.length === 0 && itinerary.length === 0 && (
                                 <div className="text-center mt-10" style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>
