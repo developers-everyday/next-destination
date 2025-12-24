@@ -1,6 +1,6 @@
 import { useItineraryStore } from "@/store/useItineraryStore";
-import { Trash2, GripVertical, ChevronLeft, Map as MapIcon, Save, FolderOpen, X, ChevronDown, ChevronRight, Play } from "lucide-react";
-import { useMemo, useState, useEffect } from 'react';
+import { Trash2, GripVertical, ChevronLeft, Map as MapIcon, Save, FolderOpen, X, Play, MapPin, Navigation } from "lucide-react";
+import { useState } from 'react';
 import SearchBox from "./SearchBox";
 import { dbService, TripMetadata } from "@/services/db";
 import {
@@ -13,7 +13,6 @@ import {
     DragEndEvent
 } from '@dnd-kit/core';
 import {
-    arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
@@ -21,7 +20,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-function SortableStopItem({ stop, index, onRemove, onFocus, isDark }: { stop: any, index: number, onRemove: (id: string) => void, onFocus: (coords: [number, number]) => void, isDark: boolean }) {
+function SortableStopItem({ stop, index, total, onRemove, onFocus, isDark }: { stop: any, index: number, total: number, onRemove: (id: string) => void, onFocus: (coords: [number, number]) => void, isDark: boolean }) {
     const {
         attributes,
         listeners,
@@ -34,96 +33,61 @@ function SortableStopItem({ stop, index, onRemove, onFocus, isDark }: { stop: an
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        zIndex: isDragging ? 100 : 'auto',
-        opacity: isDragging ? 0.8 : 1,
+        zIndex: isDragging ? 20 : 'auto',
+        position: 'relative' as const,
     };
+
+    // Determine icon based on position
+    const isStart = index === 0;
+    const isEnd = index === total - 1 && total > 1;
 
     return (
         <div
             ref={setNodeRef}
-            style={{
-                ...style,
-                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-                border: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(0, 0, 0, 0.05)',
-                marginBottom: '12px'
-            }}
-            className={`group p-3 rounded-lg flex items-center gap-3 transition-colors ${isDragging ? 'bg-black/80 ring-2 ring-blue-500' : ''}`}
+            style={style}
+            className={`group relative pl-3 pr-2 py-2 border-b last:border-0 transition-colors ${isDragging ? 'opacity-50' : ''} ${isDark ? 'border-gray-800 hover:bg-white/5' : 'border-gray-100 hover:bg-gray-50'}`}
             onClick={() => onFocus(stop.coordinates)}
         >
-            <div
-                {...attributes}
-                {...listeners}
-                style={{ color: isDark ? '#9ca3af' : '#6b7280', cursor: 'grab', touchAction: 'none' }}
-                className={isDark ? "hover:text-white" : "hover:text-black"}
-            >
-                <GripVertical size={16} />
-            </div>
-
-            <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                style={{ backgroundColor: isDark ? 'rgba(37, 99, 235, 0.2)' : 'rgba(37, 99, 235, 0.1)', color: '#60a5fa' }}>
-                {index + 1}
-            </div>
-
-            <div className="flex-1 min-w-0">
-                <h3 className="font-semibold truncate" style={{ color: isDark ? 'white' : '#1f2937' }}>{stop.name}</h3>
-                <p className="text-xs" style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>Day {stop.dayIndex || 1}</p>
-            </div>
-
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove(stop.id);
-                }}
-                className={`p-1 opacity-100 rounded ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
-                style={{ color: '#ef4444' }}
-            >
-                <Trash2 size={16} />
-            </button>
-        </div>
-    );
-}
-
-function DaySection({ day, isDark, onFocus }: { day: any, isDark: boolean, onFocus: (coords: [number, number]) => void }) {
-    const [isExpanded, setIsExpanded] = useState(true);
-
-    return (
-        <div className={`rounded-xl transition-all duration-300 overflow-hidden border ${isDark ? 'bg-white/5 border-white/5' : 'bg-white/40 border-gray-200'}`}>
-            <div
-                className={`p-3 flex items-center justify-between cursor-pointer transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-white/60'}`}
-                onClick={() => setIsExpanded(!isExpanded)}
-            >
-                <div>
-                    <h3 className={`font-bold text-lg flex items-center gap-2 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                        Day {day.day}
-                    </h3>
-                </div>
-                <div className={isDark ? 'text-gray-400' : 'text-gray-500'}>
-                    {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
-                </div>
-            </div>
-
-            <div className={`transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                <div className="p-3 pt-0">
-                    <p className={`text-sm leading-relaxed whitespace-pre-wrap mb-3 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {day.narrative}
-                    </p>
-                    <div className={`space-y-2 pl-2 border-l-2 ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-                        {day.stops.map((stop: any, index: number) => (
-                            <div
-                                key={stop.id}
-                                className={`group p-2 rounded-lg flex items-center gap-3 transition-all cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-blue-50'}`}
-                                onClick={() => onFocus(stop.coordinates)}
-                            >
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-sm ${isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-white text-blue-600 border border-blue-100'}`}>
-                                    {index + 1}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <span className={`text-sm font-medium truncate block ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{stop.name}</span>
-                                </div>
-                            </div>
-                        ))}
+            <div className="flex items-center gap-3">
+                {/* Marker - Technical/Minimal */}
+                <div className="shrink-0 relative">
+                    <div className={`w-5 h-5 flex items-center justify-center font-mono text-[10px] font-bold rounded-sm border ${isStart
+                        ? (isDark ? 'bg-blue-900/30 text-blue-400 border-blue-800' : 'bg-blue-50 text-blue-600 border-blue-200')
+                        : isEnd
+                            ? (isDark ? 'bg-red-900/30 text-red-400 border-red-800' : 'bg-red-50 text-red-600 border-red-200')
+                            : (isDark ? 'bg-gray-800 text-gray-400 border-gray-700' : 'bg-gray-100 text-gray-500 border-gray-200')
+                        }`}>
+                        {index + 1}
                     </div>
                 </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center gap-2">
+                        <h3 className={`font-semibold text-xs truncate leading-tight ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                            {stop.name}
+                        </h3>
+                        {/* Drag Handle */}
+                        <div
+                            {...attributes}
+                            {...listeners}
+                            className={`p-1 cursor-grab active:cursor-grabbing transition-opacity ${isDark ? 'text-gray-600 hover:text-gray-400' : 'text-gray-300 hover:text-gray-500'}`}
+                        >
+                            <GripVertical size={12} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Remove Button */}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(stop.id);
+                    }}
+                    className={`shrink-0 p-1 transition-opacity ${isDark ? 'text-gray-600 hover:text-red-400' : 'text-gray-400 hover:text-red-600'}`}
+                >
+                    <Trash2 size={12} />
+                </button>
             </div>
         </div>
     );
@@ -171,15 +135,13 @@ export default function Sidebar() {
                 center: stops.length > 0 ? stops[0].coordinates : undefined
             });
 
-            setNotification({ message: "Trip saved successfully!", type: 'success' });
-            // Refresh trips list if open
+            setNotification({ message: "Trip saved!", type: 'success' });
             if (showTrips) {
                 const trips = await dbService.getTrips();
                 setSavedTrips(trips);
             }
         } catch (error) {
-            console.error('Failed to save trip:', error);
-            setNotification({ message: "Failed to save trip.", type: 'error' });
+            setNotification({ message: "Failed to save.", type: 'error' });
         }
         setTimeout(() => setNotification(null), 3000);
     };
@@ -210,141 +172,176 @@ export default function Sidebar() {
     const isDark = theme === 'dark';
 
     return (
-        <div className="flex h-full items-start relative">
+        <div className="flex h-full items-start relative z-[1000] pointer-events-none">
             <div
-                className={`h-full rounded-2xl overflow-hidden flex flex-col pointer-events-auto transition-all duration-300 ease-in-out 
-                    ${isCollapsed ? 'w-0 opacity-0 border-0 p-0' : 'w-80 m-4'}
-                    ${isDark
-                        ? 'bg-[#0b1121]/90 backdrop-blur-xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] text-white'
-                        : 'shadow-2xl text-black'
-                    }
+                className={`h-[95vh] my-auto ml-4 rounded-xl flex flex-col pointer-events-auto transition-all duration-300 ease-in-out shadow-2xl z-50
+                    ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-96'}
+                    ${isDark ? 'bg-[#0f172a] border border-white/10 text-white shadow-black/50' : 'bg-white text-gray-900'}
                 `}
-                style={!isDark ? {
-                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(24px)',
-                    border: '1px solid rgba(255, 255, 255, 0.4)'
-                } : {}}
+                style={{
+                    backgroundColor: isDark ? '#0f172a' : '#ffffff',
+                    color: isDark ? '#ffffff' : '#111827' // Force text color (gray-900 hex)
+                }}
             >
                 {/* Header */}
-                <div className="p-4 flex flex-col gap-2 shrink-0" style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)', backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
-                    <div className="flex items-center justify-between">
-                        <h2 className={`text-xl font-bold truncate pr-2 ${isDark ? 'bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent' : 'text-blue-600'}`}>
-                            {tripConstraints.destination || "Itinerary"}
-                        </h2>
-                        <div className="flex gap-1 shrink-0">
-                            {(itinerary.length > 0 || stops.length > 0) && (
-                                <button
-                                    onClick={toggleStoryMode}
-                                    className={`p-2 rounded-full mr-1 ${isDark ? 'hover:bg-white/10 text-cyan-400' : 'hover:bg-black/5 text-cyan-600'}`}
-                                    title="Play Trip"
-                                >
-                                    <Play size={18} fill="currentColor" />
-                                </button>
-                            )}
-                            <button onClick={handleSaveTrip} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-green-400' : 'hover:bg-black/5 text-green-600'}`} title="Save Trip">
-                                <Save size={18} />
+                <div className={`p-4 shrink-0 relative z-20 ${isDark ? 'bg-[#0f172a]' : 'bg-white'}`}
+                    style={{ backgroundColor: isDark ? '#0f172a' : '#ffffff' }}>
+                    <div className="flex items-start justify-between mb-4">
+                        <div>
+                            <h2 className={`text-xl font-bold leading-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                {tripConstraints.destination || "Itinerary"}
+                            </h2>
+                            <div className="flex items-center gap-2 mt-2">
+                                <div className={`flex rounded bg-gray-100 p-0.5 ${isDark ? 'bg-gray-800' : 'bg-[#f2f5f7]'}`}>
+                                    {['Driving', 'Walking', 'Cycling'].map((mode) => (
+                                        <button
+                                            key={mode}
+                                            className={`px-3 py-1 text-[10px] font-bold uppercase rounded-sm transition-all ${mode === 'Driving'
+                                                ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
+                                                : (isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700')
+                                                }`}
+                                        >
+                                            {mode}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex gap-1">
+                            <button onClick={handleSaveTrip} className={`p-2 rounded hover:bg-black/5 transition-colors ${isDark ? 'hover:bg-white/10 text-green-400' : 'text-green-600'}`} title="Save Trip">
+                                <Save size={16} />
                             </button>
-                            <button onClick={handleLoadTrips} className={`p-2 rounded-full ${isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-black/5 text-blue-500'}`} title="My Trips">
-                                <FolderOpen size={18} />
+                            <button onClick={handleLoadTrips} className={`p-2 rounded hover:bg-black/5 transition-colors ${isDark ? 'hover:bg-white/10 text-blue-400' : 'text-blue-500'}`} title="My Trips">
+                                <FolderOpen size={16} />
                             </button>
                         </div>
                     </div>
-                    <p className="text-xs" style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
-                        {itinerary.length > 0 ? `${itinerary.length} Days Planned` : `${stops.length} stops planned`}
-                    </p>
+
+                    {!showTrips && <SearchBox />}
+
+                    {notification && (
+                        <div className={`mt-3 p-2 text-xs rounded text-center ${notification.type === 'success' ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+                            {notification.message}
+                        </div>
+                    )}
                 </div>
 
-                {notification && (
-                    <div className={`mx-4 mt-2 p-2 text-xs rounded text-center ${notification.type === 'success' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
-                        {notification.message}
-                    </div>
-                )}
-
-                {!showTrips ? (
-                    <>
-                        <div className="px-4 pt-4">
-                            <SearchBox />
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                            <DndContext
-                                sensors={sensors}
-                                collisionDetection={closestCenter}
-                                onDragEnd={handleDragEnd}
-                            >
-                                <SortableContext
-                                    items={stops.map(s => s.id)}
-                                    strategy={verticalListSortingStrategy}
-                                >
-                                    {stops.map((stop, index) => (
-                                        <SortableStopItem
-                                            key={stop.id}
-                                            stop={stop}
-                                            index={index}
-                                            onRemove={removeStop}
-                                            onFocus={setFocusedLocation}
-                                            isDark={isDark}
-                                        />
-                                    ))}
-                                </SortableContext>
-                            </DndContext>
-
-                            {stops.length === 0 && itinerary.length === 0 && (
-                                <div className="text-center mt-10" style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>
-                                    <p>No stops yet.</p>
-                                    <p className="text-sm mt-2">"Take me to Paris"</p>
+                {/* Content Area */}
+                <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar">
+                    {!showTrips ? (
+                        <div className="p-2 pb-24">
+                            {stops.length === 0 ? (
+                                <div className={`text-center mt-12 px-6 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+                                    <MapIcon size={48} className="mx-auto mb-4 opacity-20" />
+                                    <p>Search for a place to add it to your trip.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-0 relative">
+                                    <DndContext
+                                        sensors={sensors}
+                                        collisionDetection={closestCenter}
+                                        onDragEnd={handleDragEnd}
+                                    >
+                                        <SortableContext
+                                            items={stops.map(s => s.id)}
+                                            strategy={verticalListSortingStrategy}
+                                        >
+                                            {stops.map((stop, index) => (
+                                                <SortableStopItem
+                                                    key={stop.id}
+                                                    stop={stop}
+                                                    index={index}
+                                                    total={stops.length}
+                                                    onRemove={removeStop}
+                                                    onFocus={setFocusedLocation}
+                                                    isDark={isDark}
+                                                />
+                                            ))}
+                                        </SortableContext>
+                                    </DndContext>
                                 </div>
                             )}
                         </div>
-                    </>
-                ) : (
-                    <div className="flex-1 overflow-y-auto p-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Stored Trips</h3>
-                            <button onClick={() => setShowTrips(false)} className={`p-1 rounded ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="space-y-3">
-                            {savedTrips.length === 0 ? (
-                                <p className="text-gray-500 text-center text-sm py-4">No saved trips yet.</p>
-                            ) : (
-                                savedTrips.map(trip => (
-                                    <div
-                                        key={trip.id}
-                                        onClick={() => loadTrip(trip.id)}
-                                        className={`p-3 rounded-lg cursor-pointer border transition-colors group relative ${isDark ? 'bg-white/5 hover:bg-white/10 border-white/5' : 'bg-white/50 hover:bg-white/80 border-gray-200 shadow-sm'}`}
-                                    >
-                                        <h4 className={`font-semibold ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>{trip.name}</h4>
-                                        <p className="text-xs text-gray-400 mt-1">{new Date(trip.updatedAt).toLocaleDateString()}</p>
-                                        <button
-                                            onClick={(e) => deleteTrip(e, trip.id)}
-                                            className="absolute right-2 top-2 p-1.5 rounded-md text-red-400 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 transition-all"
-                                            title="Delete Trip"
+                    ) : (
+                        <div className="p-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Saved Trips</h3>
+                                <button onClick={() => setShowTrips(false)} className={`p-1.5 rounded-full ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            <div className="space-y-2">
+                                {savedTrips.length === 0 ? (
+                                    <p className="text-gray-500 text-center py-8 text-sm">No saved trips.</p>
+                                ) : (
+                                    savedTrips.map(trip => (
+                                        <div
+                                            key={trip.id}
+                                            onClick={() => loadTrip(trip.id)}
+                                            className={`p-3 rounded-lg cursor-pointer border transition-all ${isDark ? 'bg-gray-800/50 hover:bg-gray-800 border-gray-700' : 'bg-white hover:border-blue-400 border-gray-200 shadow-sm'}`}
                                         >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                ))
-                            )}
+                                            <h4 className={`font-medium ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>{trip.name}</h4>
+                                            <p className="text-xs text-gray-500 mt-1">{new Date(trip.updatedAt).toLocaleDateString()}</p>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
+                    )}
+                </div>
+
+                {/* Footer Actions */}
+                <div className={`p-4 shrink-0 border-t ${isDark ? 'bg-[#0f172a] border-white/10' : 'bg-[#f9fafb] border-gray-200'}`}
+                    style={{ backgroundColor: isDark ? '#0f172a' : '#f9fafb' }}>
+                    <button
+                        onClick={toggleStoryMode}
+                        disabled={stops.length === 0}
+                        className={`w-full py-2 px-4 rounded font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all
+                            ${stops.length === 0
+                                ? (isDark ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed')
+                                : (isDark ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-[#4264fb] hover:bg-[#314ccd] text-white')
+                            }
+                        `}
+                    >
+                        <Play size={16} fill="currentColor" />
+                        Start Journey
+                    </button>
+
+                    {/* Offline / Extra options could go here */}
+                    <div className={`mt-3 flex items-center justify-center gap-4 text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                        <button className="hover:text-blue-500 hover:underline">Share</button>
+                        <span>•</span>
+                        <button className="hover:text-blue-500 hover:underline">Print</button>
                     </div>
+                </div>
+            </div>
+
+            {/* Floating Controls (Outside Sidebar) */}
+            <div className={`absolute top-4 left-4 h-12 flex items-center gap-2 pointer-events-auto transition-transform duration-300 ${isCollapsed ? 'translate-x-0' : 'translate-x-[384px]'}`}>
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-50'
+                        }`}
+                >
+                    {isCollapsed ? <MapIcon size={18} /> : <ChevronLeft size={18} />}
+                </button>
+
+                {isCollapsed && (
+                    <button
+                        onClick={toggleTheme}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700' : 'bg-white text-indigo-600 hover:bg-gray-50'
+                            }`}
+                    >
+                        {isDark ? "☀" : "☾"}
+                    </button>
                 )}
             </div>
 
-            {/* Controls */}
-            <div className="flex flex-col gap-2 ml-2 mt-4 pointer-events-auto">
-                <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className={`p-2 rounded-lg backdrop-blur-md border shadow-xl transition-all ${isDark ? 'bg-black/80 text-white border-white/20 hover:bg-black' : 'bg-white/80 text-black border-white/60 hover:bg-white'}`}
-                    title={isCollapsed ? "Expand Itinerary" : "Collapse Itinerary"}
-                >
-                    {isCollapsed ? <MapIcon size={20} /> : <ChevronLeft size={20} />}
-                </button>
-
+            <div className={`absolute top-4 left-[440px] pointer-events-auto space-x-2 ${isCollapsed ? 'hidden' : 'block'}`}>
                 <button
                     onClick={toggleTheme}
-                    className={`p-2 rounded-lg backdrop-blur-md border shadow-xl transition-all ${isDark ? 'bg-black/80 text-yellow-400 border-white/20 hover:bg-black' : 'bg-white/80 text-indigo-600 border-white/60 hover:bg-white'}`}
+                    className={`p-2 rounded-full shadow-sm transition-colors ${isDark ? 'bg-transparent text-yellow-400 hover:bg-white/10' : 'bg-transparent text-indigo-600 hover:bg-black/5'
+                        }`}
                     title="Toggle Theme"
                 >
                     {isDark ? "☀" : "☾"}
