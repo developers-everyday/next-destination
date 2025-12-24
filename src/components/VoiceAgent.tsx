@@ -80,6 +80,13 @@ export default function VoiceAgent() {
                     console.error("Error generating itinerary", e);
                     return "Failed to display itinerary.";
                 }
+            },
+            start_journey: (parameters: {}) => {
+                console.log("Tool Call: start_journey");
+                setStatus("Starting journey...");
+                const { startJourney } = useItineraryStore.getState();
+                startJourney();
+                return "Starting the journey simulation now.";
             }
         }
     });

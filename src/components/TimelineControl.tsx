@@ -3,10 +3,10 @@ import React from "react";
 
 interface TimelineControlProps {
     onStart: () => void;
-    isSimulating: boolean;
+    isStoryMode?: boolean;
 }
 
-export default function TimelineControl({ onStart, isSimulating }: TimelineControlProps) {
+export default function TimelineControl({ onStart, isStoryMode }: TimelineControlProps) {
     return (
         <div
             className="fixed z-[1000] flex gap-4"
@@ -19,14 +19,14 @@ export default function TimelineControl({ onStart, isSimulating }: TimelineContr
         >
             <button
                 onClick={onStart}
-                disabled={isSimulating}
                 className={`
-                    cursor-pointer !pointer-events-auto relative group flex items-center justify-center gap-2 px-6 h-16 rounded-full shadow-2xl transition-all duration-300 bg-blue-600 hover:bg-blue-500
-                    ${isSimulating ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'text-white'}
+                    cursor-pointer !pointer-events-auto relative group flex items-center justify-center gap-2 px-6 h-16 rounded-full shadow-2xl transition-all duration-300 bg-blue-600 hover:bg-blue-500 text-white
                 `}
             >
-                {isSimulating ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 fill-current" />}
-                <span className="font-bold text-lg">Start Journey</span>
+                {isStoryMode ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 fill-current" />}
+                <span className="font-bold text-lg">
+                    {isStoryMode ? "Exit Journey" : "Start Journey"}
+                </span>
             </button>
         </div>
     );

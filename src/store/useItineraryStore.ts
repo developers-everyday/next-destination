@@ -45,6 +45,9 @@ interface ItineraryState {
     toggleStoryMode: () => void;
     nextStop: () => void;
     prevStop: () => void;
+
+    startJourney: () => void;
+    stopJourney: () => void;
 }
 
 export const useItineraryStore = create<ItineraryState>()(
@@ -169,7 +172,18 @@ export const useItineraryStore = create<ItineraryState>()(
                     };
                 }
                 return state;
-            })
+            }),
+
+            // Unified Journey Control
+            startJourney: () => set((state) => ({
+                isStoryMode: true,
+                activeDayIndex: 0,
+                activeActivityIndex: 0
+            })),
+            stopJourney: () => set((state) => ({
+                isStoryMode: false,
+            })),
+
         }),
         {
             name: 'vox-travel-storage',

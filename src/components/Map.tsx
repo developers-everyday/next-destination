@@ -5,17 +5,13 @@ import { Map, Marker, Layer, Source, MapRef, GeolocateControl } from "react-map-
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useItineraryStore } from "@/store/useItineraryStore";
 import { MapPin } from "lucide-react";
-import * as turf from "@turf/turf";
 import TimelineControl from "./TimelineControl";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 export default function MapComponent() {
     const mapRef = useRef<MapRef>(null);
-    const { stops, focusedLocation, addStop, theme } = useItineraryStore();
-    const [isSimulating, setIsSimulating] = useState(false);
-    const [carPosition, setCarPosition] = useState<any>(null);
-    const [carBearing, setCarBearing] = useState(0);
+    const { stops, focusedLocation, addStop, theme, startJourney, stopJourney, isStoryMode } = useItineraryStore();
 
     useEffect(() => {
         if (!MAPBOX_TOKEN) {
@@ -98,73 +94,30 @@ export default function MapComponent() {
         },
     };
 
-    const startSimulation = () => {
-        if (stops.length < 2) {
-            alert("Need at least 2 stops to drive!");
-            return;
-        }
-
-        setIsSimulating(true);
-        const line = turf.lineString(stops.map(s => s.coordinates));
-        const totalDistance = turf.length(line, { units: 'kilometers' });
-
-        let distanceTraveled = 0;
-        const speed = 0.05; // km per frame
-
-        const animate = () => {
-            if (distanceTraveled >= totalDistance) {
-                setIsSimulating(false);
-                setCarPosition(null);
-                return;
-            }
-
-            const point = turf.along(line, distanceTraveled, { units: 'kilometers' });
-
-            // Calculate bearing
-            if (distanceTraveled > 0) {
-                const prevPoint = turf.along(line, distanceTraveled - speed, { units: 'kilometers' });
-                const bearing = turf.bearing(prevPoint, point);
-                setCarBearing(bearing);
-
-                // Move Camera
-                if (mapRef.current) {
-                    mapRef.current.easeTo({
-                        center: point.geometry.coordinates as [number, number],
-                        bearing: bearing,
-                        pitch: 60,
-                        zoom: 17,
-                        duration: 0,
-                        easing: (t) => t
-                    });
-                }
-            }
-
-            setCarPosition(point);
-            distanceTraveled += speed;
-            requestAnimationFrame(animate);
-        };
-
-        animate();
-    };
-
     const isDark = theme === 'dark';
 
     return (
         <div style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0 }}>
             <Map
                 ref={mapRef}
-                initialViewState={{
-                    longitude: 2.3522, // Paris
-                    latitude: 48.8566,
-                    zoom: 12,
-                    pitch: 60, // Initial pitch for 3D view
-                }}
-                onLoad={onMapLoad}
-                onClick={handleMapClick}
-                style={{ width: "100%", height: "100%" }}
-                mapStyle={isDark ? "mapbox://styles/mapbox/navigation-night-v1" : "mapbox://styles/mapbox/streets-v11"}
                 mapboxAccessToken={MAPBOX_TOKEN}
-                projection={'globe' as any}
+                initialViewState={{
+                    longitude: -74.006,
+                    latitude: 40.7128,
+                    zoom: 12,
+                    pitch: 60,
+                }}
+                style={{ width: "100%", height: "100%" }}
+                mapStyle={theme === 'dark' ? "mapbox://styles/mapbox/navigation-night-v1" : "mapbox://styles/mapbox/streets-v12"}
+                onClick={handleMapClick}
+                onLoad={onMapLoad}
+                terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
+                light={isDark ? {
+                    anchor: 'viewport',
+                    color: 'white',
+                    intensity: 0.4,
+                    position: [1.5, 90, 80]
+                } as any : undefined}
                 fog={isDark ? {
                     "range": [0.5, 10],
                     "color": "#001e3c",      // Deep Cyber Blue
@@ -172,13 +125,6 @@ export default function MapComponent() {
                     "space-color": "#000000",
                     "horizon-blend": 0.05,
                     "star-intensity": 0.5
-                } as any : undefined}
-                terrain={{ source: 'mapbox-dem', exaggeration: 1.5 }}
-                light={isDark ? {
-                    anchor: 'viewport',
-                    color: 'white',
-                    intensity: 0.4,
-                    position: [1.5, 90, 80]
                 } as any : undefined}
             >
                 <Source
@@ -189,18 +135,16 @@ export default function MapComponent() {
                     maxzoom={14}
                 />
 
-                <GeolocateControl position="top-left" />
-
-                {/* 3D Buildings Layer */}
-                <Layer
-                    id="3d-buildings"
-                    source="composite"
-                    source-layer="building"
-                    filter={['==', 'extrude', 'true']}
-                    type="fill-extrusion"
-                    minzoom={15}
-                    paint={{
-                        'fill-extrusion-color': isDark ? '#aaa' : '#ddd',
+                {/* Add 3D Building Layer */}
+                <Layer {...{
+                    'id': '3d-buildings',
+                    'source': 'composite',
+                    'source-layer': 'building',
+                    'filter': ['==', 'extrude', 'true'],
+                    'type': 'fill-extrusion',
+                    'minzoom': 15,
+                    'paint': {
+                        'fill-extrusion-color': '#aaa',
                         'fill-extrusion-height': [
                             'interpolate',
                             ['linear'],
@@ -220,61 +164,20 @@ export default function MapComponent() {
                             ['get', 'min_height']
                         ],
                         'fill-extrusion-opacity': 0.6
-                    }}
-                />
+                    }
+                } as any} />
 
                 {/* Render Route Line */}
                 {stops.length > 1 && (
-                    <Source type="geojson" data={routeGeoJSON as any}>
-                        {/* Glow / Main Line */}
+                    <Source id="route" type="geojson" data={routeGeoJSON as any}>
                         <Layer
                             id="route-line"
                             type="line"
-                            layout={{
-                                "line-join": "round",
-                                "line-cap": "round",
-                            }}
                             paint={{
-                                "line-color": isDark ? "#00f0ff" : "#3b82f6",
-                                "line-width": isDark ? 8 : 6,
-                                "line-opacity": isDark ? 0.8 : 0.8,
-                                "line-blur": isDark ? 3 : 0,
+                                "line-color": theme === 'dark' ? "#00f0ff" : "#3b82f6",
+                                "line-width": 4,
+                                "line-opacity": 0.8,
                             }}
-                        />
-                        {/* Core Line (White Hot Center) - Dark Mode Only */}
-                        {isDark && (
-                            <Layer
-                                id="route-core"
-                                type="line"
-                                layout={{
-                                    "line-join": "round",
-                                    "line-cap": "round",
-                                }}
-                                paint={{
-                                    "line-color": "#ffffff",
-                                    "line-width": 2,
-                                    "line-opacity": 1,
-                                }}
-                            />
-                        )}
-                    </Source>
-                )}
-
-                {/* Car Layer */}
-                {carPosition && (
-                    <Source id="car-source" type="geojson" data={carPosition}>
-                        <Layer
-                            id="car-layer"
-                            type="symbol"
-                            layout={{
-                                'text-field': '🚗',
-                                'text-size': 50,
-                                'text-rotate': ['get', 'bearing'],
-                                'text-allow-overlap': true,
-                                'icon-allow-overlap': true,
-                                'text-rotation-alignment': 'map'
-                            }}
-                            paint={{}}
                         />
                     </Source>
                 )}
@@ -309,7 +212,16 @@ export default function MapComponent() {
                     </Marker>
                 ))}
             </Map>
-            <TimelineControl onStart={startSimulation} isSimulating={isSimulating} />
+            <TimelineControl
+                onStart={() => {
+                    if (isStoryMode) {
+                        stopJourney();
+                    } else {
+                        startJourney();
+                    }
+                }}
+                isStoryMode={isStoryMode}
+            />
         </div>
     );
 }

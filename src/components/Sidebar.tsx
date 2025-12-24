@@ -293,22 +293,9 @@ export default function Sidebar() {
                 {/* Footer Actions */}
                 <div className={`p-4 shrink-0 border-t ${isDark ? 'bg-[#0f172a] border-white/10' : 'bg-[#f9fafb] border-gray-200'}`}
                     style={{ backgroundColor: isDark ? '#0f172a' : '#f9fafb' }}>
-                    <button
-                        onClick={toggleStoryMode}
-                        disabled={stops.length === 0}
-                        className={`w-full py-2 px-4 rounded font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all
-                            ${stops.length === 0
-                                ? (isDark ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed')
-                                : (isDark ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-[#4264fb] hover:bg-[#314ccd] text-white')
-                            }
-                        `}
-                    >
-                        <Play size={16} fill="currentColor" />
-                        Start Journey
-                    </button>
 
-                    {/* Offline / Extra options could go here */}
-                    <div className={`mt-3 flex items-center justify-center gap-4 text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {/* Offline / Extra options */}
+                    <div className={`flex items-center justify-center gap-4 text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                         <button className="hover:text-blue-500 hover:underline">Share</button>
                         <span>•</span>
                         <button className="hover:text-blue-500 hover:underline">Print</button>
