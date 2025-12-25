@@ -1,0 +1,40 @@
+{
+    "type": "client",
+    "name": "move_map",
+    "description": "Moves the map to a specific location",
+    "disable_interruptions": false,
+    "force_pre_tool_speech": "auto",
+    "assignments": [],
+    "tool_call_sound": null,
+    "tool_call_sound_behavior": "auto",
+    "execution_mode": "immediate",
+    "expects_response": false,
+    "response_timeout_secs": 1,
+    "parameters": [
+        {
+            "id": "lat",
+            "type": "number",
+            "value_type": "llm_prompt",
+            "description": "You need to figure out this value based on the conversation.",
+            "dynamic_variable": "",
+            "constant_value": "",
+            "enum": null,
+            "is_system_provided": false,
+            "required": true
+        },
+        {
+            "id": "lng",
+            "type": "number",
+            "value_type": "llm_prompt",
+            "description": "You need to figure out this value based on the conversation.",
+            "dynamic_variable": "",
+            "constant_value": "",
+            "enum": null,
+            "is_system_provided": false,
+            "required": true
+        }
+    ],
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    }
+}

@@ -87,6 +87,20 @@ export default function VoiceAgent() {
                 const { startJourney } = useItineraryStore.getState();
                 startJourney();
                 return "Starting the journey simulation now.";
+            },
+            next_stop: (parameters: {}) => {
+                console.log("Tool Call: next_stop");
+                setStatus("Moving to next stop...");
+                const { nextStop } = useItineraryStore.getState(); // Assuming nextStop is available in the store
+                nextStop();
+                return "Moved to the next stop.";
+            },
+            previous_stop: (parameters: {}) => {
+                console.log("Tool Call: previous_stop");
+                setStatus("Moving to previous stop...");
+                const { prevStop } = useItineraryStore.getState(); // Assuming prevStop is available in the store
+                prevStop();
+                return "Moved to the previous stop.";
             }
         }
     });

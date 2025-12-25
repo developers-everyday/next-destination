@@ -1,0 +1,105 @@
+{
+    "type": "client",
+    "name": "generate_itinerary",
+    "description": "Generates a visual day-by-day itinerary plan on the user's map",
+    "disable_interruptions": false,
+    "force_pre_tool_speech": "auto",
+    "assignments": [],
+    "tool_call_sound": null,
+    "tool_call_sound_behavior": "auto",
+    "execution_mode": "immediate",
+    "expects_response": false,
+    "response_timeout_secs": 1,
+    "parameters": [
+        {
+            "id": "plan",
+            "type": "array",
+            "description": "The complete itinerary list of days",
+            "items": {
+                "id": "plan_item",
+                "type": "object",
+                "description": "A single day in the itinerary",
+                "properties": [
+                    {
+                        "id": "day",
+                        "type": "integer",
+                        "value_type": "llm_prompt",
+                        "description": "Day number (1, 2, ...)",
+                        "dynamic_variable": "",
+                        "constant_value": "",
+                        "enum": null,
+                        "is_system_provided": false,
+                        "required": true
+                    },
+                    {
+                        "id": "narrative",
+                        "type": "string",
+                        "value_type": "llm_prompt",
+                        "description": "Compelling narrative for the day",
+                        "dynamic_variable": "",
+                        "constant_value": "",
+                        "enum": null,
+                        "is_system_provided": false,
+                        "required": true
+                    },
+                    {
+                        "id": "stops",
+                        "type": "array",
+                        "description": "List of places to visit today",
+                        "items": {
+                            "id": "stops_item",
+                            "type": "object",
+                            "description": "A specific location stop",
+                            "properties": [
+                                {
+                                    "id": "name",
+                                    "type": "string",
+                                    "value_type": "llm_prompt",
+                                    "description": "Name of the location",
+                                    "dynamic_variable": "",
+                                    "constant_value": "",
+                                    "enum": null,
+                                    "is_system_provided": false,
+                                    "required": true
+                                },
+                                {
+                                    "id": "lat",
+                                    "type": "number",
+                                    "value_type": "llm_prompt",
+                                    "description": "Latitude",
+                                    "dynamic_variable": "",
+                                    "constant_value": "",
+                                    "enum": null,
+                                    "is_system_provided": false,
+                                    "required": true
+                                },
+                                {
+                                    "id": "lng",
+                                    "type": "number",
+                                    "value_type": "llm_prompt",
+                                    "description": "Longitude",
+                                    "dynamic_variable": "",
+                                    "constant_value": "",
+                                    "enum": null,
+                                    "is_system_provided": false,
+                                    "required": true
+                                }
+                            ],
+                            "required": false,
+                            "value_type": "llm_prompt"
+                        },
+                        "required": true,
+                        "value_type": "llm_prompt"
+                    }
+                ],
+                "required": false,
+                "value_type": "llm_prompt"
+            },
+            "required": true,
+            "value_type": "llm_prompt"
+        }
+    ],
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    }
+}

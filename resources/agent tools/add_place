@@ -1,0 +1,62 @@
+{
+    "type": "client",
+    "name": "add_place",
+    "description": "Adds a location to the itinerary",
+    "disable_interruptions": false,
+    "force_pre_tool_speech": "auto",
+    "assignments": [],
+    "tool_call_sound": null,
+    "tool_call_sound_behavior": "auto",
+    "execution_mode": "immediate",
+    "expects_response": false,
+    "response_timeout_secs": 1,
+    "parameters": [
+        {
+            "id": "lat",
+            "type": "number",
+            "value_type": "llm_prompt",
+            "description": "Latitude",
+            "dynamic_variable": "",
+            "constant_value": "",
+            "enum": null,
+            "is_system_provided": false,
+            "required": true
+        },
+        {
+            "id": "lng",
+            "type": "number",
+            "value_type": "llm_prompt",
+            "description": "Longitude",
+            "dynamic_variable": "",
+            "constant_value": "",
+            "enum": null,
+            "is_system_provided": false,
+            "required": true
+        },
+        {
+            "id": "name",
+            "type": "string",
+            "value_type": "llm_prompt",
+            "description": "Name of the place",
+            "dynamic_variable": "",
+            "constant_value": "",
+            "enum": null,
+            "is_system_provided": false,
+            "required": true
+        },
+        {
+            "id": "day",
+            "type": "number",
+            "value_type": "llm_prompt",
+            "description": "Day number",
+            "dynamic_variable": "",
+            "constant_value": "",
+            "enum": null,
+            "is_system_provided": false,
+            "required": true
+        }
+    ],
+    "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+    }
+}
