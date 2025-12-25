@@ -44,6 +44,7 @@ export default function VoiceAgent() {
             add_place: (parameters: { name: string; lat: number; lng: number; day?: number }) => {
                 console.log("Tool Call: add_place", parameters);
                 setStatus(`Adding ${parameters.name}...`);
+                setFocusedLocation([parameters.lng, parameters.lat]);
                 addStop({
                     name: parameters.name,
                     coordinates: [parameters.lng, parameters.lat],
