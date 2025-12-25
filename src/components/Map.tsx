@@ -6,6 +6,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useItineraryStore } from "@/store/useItineraryStore";
 import { MapPin } from "lucide-react";
 import TimelineControl from "./TimelineControl";
+import PassportPin from "./PassportPin";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -209,9 +210,12 @@ export default function MapComponent() {
                                 {index + 1}. {stop.name}
                             </span>
                         </div>
-                    </Marker>
-                ))}
-            </Map>
+
+                        <PassportPin name={stop.name} />
+                    </Marker >
+                ))
+                }
+            </Map >
             <TimelineControl
                 onStart={() => {
                     if (isStoryMode) {
@@ -222,6 +226,6 @@ export default function MapComponent() {
                 }}
                 isStoryMode={isStoryMode}
             />
-        </div>
+        </div >
     );
 }
