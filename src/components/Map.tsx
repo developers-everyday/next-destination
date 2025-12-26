@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Map, Marker, Layer, Source, MapRef, GeolocateControl } from "react-map-gl/mapbox";
+import { Map, Marker, Layer, Source, MapRef, GeolocateControl, Popup } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useItineraryStore } from "@/store/useItineraryStore";
 import { MapPin } from "lucide-react";
@@ -13,6 +13,7 @@ const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 export default function MapComponent() {
     const mapRef = useRef<MapRef>(null);
     const { stops, focusedLocation, addStop, theme, startJourney, stopJourney, isStoryMode } = useItineraryStore();
+    const [selectedStop, setSelectedStop] = useState<any>(null);
 
     useEffect(() => {
         if (!MAPBOX_TOKEN) {
@@ -32,7 +33,7 @@ export default function MapComponent() {
         }
     }, [focusedLocation]);
 
-    // Get User's Current Location
+    // Initial User Location Check
     const onMapLoad = () => {
         console.log("Map loaded, checking geolocation...");
         if ("geolocation" in navigator) {
@@ -57,6 +58,12 @@ export default function MapComponent() {
     };
 
     const handleMapClick = async (event: any) => {
+        // If a marker was selected, deselect it and return to avoid adding a stop
+        if (selectedStop) {
+            setSelectedStop(null);
+            return;
+        }
+
         const { lng, lat } = event.lngLat;
         try {
             const response = await fetch(
@@ -128,6 +135,8 @@ export default function MapComponent() {
                     "star-intensity": 0.5
                 } as any : undefined}
             >
+                <GeolocateControl position="top-right" />
+
                 <Source
                     id="mapbox-dem"
                     type="raster-dem"
@@ -190,8 +199,12 @@ export default function MapComponent() {
                         longitude={stop.coordinates[0]}
                         latitude={stop.coordinates[1]}
                         anchor="bottom"
+                        onClick={(e) => {
+                            e.originalEvent.stopPropagation();
+                            setSelectedStop(stop);
+                        }}
                     >
-                        <div className="flex flex-col items-center">
+                        <div className="flex flex-col items-center cursor-pointer group">
                             <div
                                 className={`p-2 rounded-full border-2 border-white ${isDark ? 'shadow-[0_0_15px_rgba(0,240,255,0.7)] animate-pulse' : 'shadow-lg'}`}
                                 style={{ backgroundColor: isDark ? '#06b6d4' : '#dc2626' }}
@@ -199,12 +212,12 @@ export default function MapComponent() {
                                 <MapPin className="w-5 h-5" style={{ color: isDark ? '#000000' : '#ffffff' }} />
                             </div>
                             <span
-                                className="mt-1 text-xs font-bold px-2 py-1 rounded backdrop-blur-sm shadow-sm"
+                                className="mt-1 text-xs font-bold px-2 py-1 rounded backdrop-blur-md shadow-md transition-colors"
                                 style={{
-                                    backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)',
-                                    color: isDark ? '#67e8f9' : '#b91c1c',
-                                    borderColor: isDark ? 'rgba(6,182,212,0.3)' : 'transparent',
-                                    borderWidth: isDark ? '1px' : '0px'
+                                    backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.95)',
+                                    color: isDark ? '#67e8f9' : '#1f2937',
+                                    borderColor: isDark ? 'rgba(6,182,212,0.3)' : '#e5e7eb',
+                                    borderWidth: '1px'
                                 }}
                             >
                                 {index + 1}. {stop.name}
@@ -213,8 +226,41 @@ export default function MapComponent() {
 
                         <PassportPin name={stop.name} />
                     </Marker >
-                ))
-                }
+                ))}
+
+                {/* Popup for Selected Marker */}
+                {selectedStop && (
+                    <Popup
+                        longitude={selectedStop.coordinates[0]}
+                        latitude={selectedStop.coordinates[1]}
+                        anchor="top"
+                        onClose={() => setSelectedStop(null)}
+                        closeOnClick={false}
+                        maxWidth="300px"
+                    >
+                        <div className="flex flex-col gap-2 p-1">
+                            <h3 className="font-bold text-sm text-gray-900">{selectedStop.name}</h3>
+                            <div className="w-full h-32 relative overflow-hidden rounded bg-gray-100">
+                                <img
+                                    src={`https://picsum.photos/seed/${encodeURIComponent(selectedStop.name)}/400/300`}
+                                    alt={selectedStop.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <p className="text-xs text-gray-600 italic">
+                                {(() => {
+                                    const index = stops.findIndex(s => s.id === selectedStop.id);
+                                    const stopNumber = index + 1;
+                                    const ordinals = ["", "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth"];
+                                    const ordinal = stopNumber <= 10 ? ordinals[stopNumber] : `${stopNumber}th`;
+
+                                    return `This is your ${ordinal} stop. It may take around 2 to 3 hours to enjoy this beautiful ${selectedStop.name}.`;
+                                })()}
+                            </p>
+                        </div>
+                    </Popup>
+                )}
+
             </Map >
             <TimelineControl
                 onStart={() => {
