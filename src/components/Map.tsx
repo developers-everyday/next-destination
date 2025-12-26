@@ -15,6 +15,8 @@ export default function MapComponent() {
     const { stops, focusedLocation, addStop, theme, startJourney, stopJourney, isStoryMode } = useItineraryStore();
     const [selectedStop, setSelectedStop] = useState<any>(null);
 
+    const [zoom, setZoom] = useState(12); // Initial zoom
+
     useEffect(() => {
         if (!MAPBOX_TOKEN) {
             console.error("Missing NEXT_PUBLIC_MAPBOX_TOKEN");
@@ -30,6 +32,7 @@ export default function MapComponent() {
                 pitch: 60,
                 essential: true,
             });
+            setZoom(14);
         }
     }, [focusedLocation]);
 
@@ -48,6 +51,7 @@ export default function MapComponent() {
                             essential: true,
                             duration: 2000
                         });
+                        setZoom(14);
                     }
                 },
                 (error) => {
@@ -106,6 +110,14 @@ export default function MapComponent() {
 
     return (
         <div style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0 }}>
+            {/* Dev Tool: Zoom Level Display - Positioned below the top-right GeolocateControl */}
+            <div
+                className="absolute top-14 right-[10px] z-50 px-2 py-1 bg-white text-gray-900 rounded-md shadow-[0_0_0_2px_rgba(0,0,0,0.1)] text-xs font-mono font-bold border border-transparent pointer-events-none"
+                style={{ opacity: 0.9, color: '#000000' }}
+            >
+                Zoom: {zoom.toFixed(2)}
+            </div>
+
             <Map
                 ref={mapRef}
                 mapboxAccessToken={MAPBOX_TOKEN}
@@ -115,6 +127,7 @@ export default function MapComponent() {
                     zoom: 12,
                     pitch: 60,
                 }}
+                onMove={(evt) => setZoom(evt.viewState.zoom)}
                 style={{ width: "100%", height: "100%" }}
                 mapStyle={theme === 'dark' ? "mapbox://styles/mapbox/navigation-night-v1" : "mapbox://styles/mapbox/streets-v12"}
                 onClick={handleMapClick}
@@ -135,6 +148,7 @@ export default function MapComponent() {
                     "star-intensity": 0.5
                 } as any : undefined}
             >
+
                 <GeolocateControl position="top-right" />
 
                 <Source
@@ -215,7 +229,7 @@ export default function MapComponent() {
                                 className="mt-1 text-xs font-bold px-2 py-1 rounded backdrop-blur-md shadow-md transition-colors"
                                 style={{
                                     backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.95)',
-                                    color: isDark ? '#67e8f9' : '#1f2937',
+                                    color: isDark ? '#67e8f9' : '#000000',
                                     borderColor: isDark ? 'rgba(6,182,212,0.3)' : '#e5e7eb',
                                     borderWidth: '1px'
                                 }}

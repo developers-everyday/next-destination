@@ -174,7 +174,7 @@ export default function Sidebar() {
     return (
         <div className="flex h-full items-start relative z-[1000] pointer-events-none">
             <div
-                className={`h-[95vh] my-auto ml-4 rounded-xl flex flex-col pointer-events-auto transition-all duration-300 ease-in-out shadow-2xl z-50
+                className={`h-[95vh] mt-4 ml-4 rounded-xl flex flex-col pointer-events-auto transition-all duration-300 ease-in-out shadow-2xl z-50
                     ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-96'}
                     ${isDark ? 'bg-[#0f172a] border border-white/10 text-white shadow-black/50' : 'bg-white text-gray-900'}
                 `}

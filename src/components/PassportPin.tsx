@@ -62,8 +62,8 @@ export default function PassportPin({ name }: PassportPinProps) {
                     </div>
                 </div>
 
-                {/* Caption - barely visible at small scale, clearer at large */}
-                <div className="mt-1 text-[5px] text-center font-serif text-gray-800 leading-tight uppercase tracking-wider truncate px-1">
+                {/* Caption - styled to match Map Marker Label */}
+                <div className="mt-1 text-[6px] text-center font-bold text-black leading-tight uppercase tracking-wider truncate px-1" style={{ color: '#000000' }}>
                     {name}
                 </div>
             </div>
