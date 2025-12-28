@@ -4,25 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import { Map, Marker, Layer, Source, MapRef, GeolocateControl, Popup } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useItineraryStore } from "@/store/useItineraryStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { MapPin } from "lucide-react";
 import TimelineControl from "./TimelineControl";
 import PassportPin from "./PassportPin";
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
 export default function MapComponent() {
     const mapRef = useRef<MapRef>(null);
     const { stops, focusedLocation, addStop, theme, startJourney, stopJourney, isStoryMode } = useItineraryStore();
-    const [selectedStop, setSelectedStop] = useState<any>(null);
+    const { mapboxToken } = useSettingsStore();
 
+    const [selectedStop, setSelectedStop] = useState<any>(null);
     const [zoom, setZoom] = useState(12); // Initial zoom
 
     useEffect(() => {
-        if (!MAPBOX_TOKEN) {
-            console.error("Missing NEXT_PUBLIC_MAPBOX_TOKEN");
-            alert("Missing NEXT_PUBLIC_MAPBOX_TOKEN in .env.local");
+        if (!mapboxToken) {
+            console.error("Missing Mapbox Token");
         }
-    }, []);
+    }, [mapboxToken]);
 
     useEffect(() => {
         if (focusedLocation && mapRef.current) {
@@ -61,17 +60,19 @@ export default function MapComponent() {
         }
     };
 
-    const handleMapClick = async (event: any) => {
+    const handleMapClick = async (event: mapboxgl.MapLayerMouseEvent) => {
         // If a marker was selected, deselect it and return to avoid adding a stop
         if (selectedStop) {
             setSelectedStop(null);
             return;
         }
 
+        if (!mapboxToken) return;
+
         const { lng, lat } = event.lngLat;
         try {
             const response = await fetch(
-                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${MAPBOX_TOKEN}`
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}`
             );
             const data = await response.json();
             const placeName = data.features?.[0]?.text || "Pinned Location";
@@ -92,8 +93,12 @@ export default function MapComponent() {
         }
     };
 
-    if (!MAPBOX_TOKEN) {
-        return <div className="w-full h-full flex items-center justify-center text-white bg-gray-900">Mapbox Token Missing</div>;
+    if (!mapboxToken) {
+        return (
+            <div className="w-full h-full flex flex-col items-center justify-center text-white bg-gray-900 gap-4">
+                <div>Mapbox Token Missing</div>
+            </div>
+        );
     }
 
     // Create GeoJSON for the route line
@@ -120,7 +125,7 @@ export default function MapComponent() {
 
             <Map
                 ref={mapRef}
-                mapboxAccessToken={MAPBOX_TOKEN}
+                mapboxAccessToken={mapboxToken}
                 initialViewState={{
                     longitude: -74.006,
                     latitude: 40.7128,

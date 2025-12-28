@@ -48,6 +48,7 @@ interface ItineraryState {
 
     startJourney: () => void;
     stopJourney: () => void;
+    resetTrip: () => void;
 }
 
 export const useItineraryStore = create<ItineraryState>()(
@@ -175,14 +176,25 @@ export const useItineraryStore = create<ItineraryState>()(
             }),
 
             // Unified Journey Control
-            startJourney: () => set((state) => ({
+            // Unified Journey Control
+            startJourney: () => set(() => ({
                 isStoryMode: true,
                 activeDayIndex: 0,
                 activeActivityIndex: 0
             })),
-            stopJourney: () => set((state) => ({
+            stopJourney: () => set(() => ({
                 isStoryMode: false,
             })),
+
+            resetTrip: () => set({
+                stops: [],
+                itinerary: [],
+                tripConstraints: {},
+                focusedLocation: null,
+                isStoryMode: false,
+                activeDayIndex: 0,
+                activeActivityIndex: 0
+            }),
 
         }),
         {

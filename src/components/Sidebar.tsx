@@ -1,4 +1,5 @@
-import { useItineraryStore } from "@/store/useItineraryStore";
+import { useItineraryStore, Stop } from "@/store/useItineraryStore";
+
 import { Trash2, GripVertical, ChevronLeft, Map as MapIcon, Save, FolderOpen, X, Play, MapPin, Navigation } from "lucide-react";
 import { useState } from 'react';
 import SearchBox from "./SearchBox";
@@ -20,7 +21,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-function SortableStopItem({ stop, index, total, onRemove, onFocus, isDark }: { stop: any, index: number, total: number, onRemove: (id: string) => void, onFocus: (coords: [number, number]) => void, isDark: boolean }) {
+function SortableStopItem({ stop, index, total, onRemove, onFocus, isDark }: { stop: Stop, index: number, total: number, onRemove: (id: string) => void, onFocus: (coords: [number, number]) => void, isDark: boolean }) {
     const {
         attributes,
         listeners,
@@ -95,6 +96,7 @@ function SortableStopItem({ stop, index, total, onRemove, onFocus, isDark }: { s
 
 export default function Sidebar() {
     const { stops, removeStop, setFocusedLocation, itinerary, reorderStops, tripConstraints, loadItinerary, theme, toggleTheme, toggleStoryMode } = useItineraryStore();
+
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [showTrips, setShowTrips] = useState(false);
     const [savedTrips, setSavedTrips] = useState<TripMetadata[]>([]);
@@ -214,6 +216,7 @@ export default function Sidebar() {
                             <button onClick={handleLoadTrips} className={`p-2 rounded hover:bg-black/5 transition-colors ${isDark ? 'hover:bg-white/10 text-blue-400' : 'text-blue-500'}`} title="My Trips">
                                 <FolderOpen size={16} />
                             </button>
+
                         </div>
                     </div>
 
@@ -304,13 +307,13 @@ export default function Sidebar() {
             </div>
 
             {/* Floating Controls (Outside Sidebar) */}
-            <div className={`absolute top-4 left-4 h-12 flex items-center gap-2 pointer-events-auto transition-transform duration-300 ${isCollapsed ? 'translate-x-0' : 'translate-x-[384px]'}`}>
+            <div className={`absolute top-4 left-4 h-12 flex items-center gap-2 pointer-events-auto transition-transform duration-300 z-[2000] ${isCollapsed ? 'translate-x-0' : 'translate-x-[384px]'}`}>
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-gray-600 hover:bg-gray-50'
                         }`}
                 >
-                    {isCollapsed ? <MapIcon size={18} /> : <ChevronLeft size={18} />}
+                    {isCollapsed ? <ChevronLeft size={18} className="rotate-180" /> : <ChevronLeft size={18} />}
                 </button>
 
                 {isCollapsed && (

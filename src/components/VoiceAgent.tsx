@@ -4,9 +4,11 @@ import { useConversation } from "@elevenlabs/react";
 import { Mic, MicOff } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useItineraryStore } from "@/store/useItineraryStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export default function VoiceAgent() {
     const { setFocusedLocation, addStop } = useItineraryStore();
+    const { elevenLabsAgentId } = useSettingsStore();
     const [isActive, setIsActive] = useState(false);
     const [status, setStatus] = useState("Idle");
 
@@ -112,20 +114,20 @@ export default function VoiceAgent() {
         } else {
             try {
                 setStatus("Requesting microphone...");
-                const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
-                if (!agentId || agentId === "Replace-with-agent-id") {
-                    throw new Error("Missing NEXT_PUBLIC_ELEVENLABS_AGENT_ID in .env.local");
+
+                if (!elevenLabsAgentId || elevenLabsAgentId === "Replace-with-agent-id") {
+                    throw new Error("Missing ElevenLabs Agent ID. Please configure it in Settings.");
                 }
 
                 await navigator.mediaDevices.getUserMedia({ audio: true });
                 setStatus("Connecting...");
 
                 // Removed overrides temporarily to debug connectivity
-                console.log("Starting session with Agent ID:", agentId);
+                console.log("Starting session with Agent ID:", elevenLabsAgentId);
 
                 // @ts-ignore
                 await conversation.startSession({
-                    agentId: agentId,
+                    agentId: elevenLabsAgentId,
                     // NOTE: The 'overrides' below caused an error because the Agent is properly locked.
                     // PLEASE PASTE THE PROMPT (System Instruction) INTO THE ELEVENLABS DASHBOARD INSTEAD.
                     // overrides: {

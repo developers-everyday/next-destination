@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, MapPin, Loader2, X } from "lucide-react";
 import { useItineraryStore } from "@/store/useItineraryStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export default function SearchBox() {
     const [query, setQuery] = useState("");
@@ -10,6 +11,7 @@ export default function SearchBox() {
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const { addStop, theme } = useItineraryStore();
+    const { mapboxToken } = useSettingsStore();
     const wrapperRef = useRef<HTMLDivElement>(null);
 
     // Close dropdown when clicking outside
@@ -35,7 +37,6 @@ export default function SearchBox() {
         setIsOpen(true);
 
         try {
-            const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
             if (!mapboxToken) throw new Error("Missing Mapbox Token");
 
             const response = await fetch(
