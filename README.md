@@ -2,7 +2,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-you will have to first setup and create your agent with the required tool in the project [`build eleven labs agent`] (https://elevenlabs.io/app/agents)
+you will have to first setup and create your agent with the required tool for the project [`build eleven labs agent`] (https://elevenlabs.io/app/agents)
 
 First, run the development server:
 
